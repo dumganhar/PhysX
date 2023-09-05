@@ -25,7 +25,7 @@ if [ $1 ]; then mode=$1; fi
 if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin" ]]; then
     script_suffix='.bat'
 else
-	script_suffix='.sh'
+    script_suffix='.sh'
 fi
 
 echo "--------|||  BUILD JS  |||--------"
