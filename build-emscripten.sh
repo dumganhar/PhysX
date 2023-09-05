@@ -31,7 +31,7 @@ cd physx/
 ./generate_projects${script_suffix} emscripten-js
 echo "|||  COMPILE |||"
 cd compiler/emscripten-js-$mode
-ninja -j8
+ninja
 
 echo "--------|||  BUILD WASM  |||--------"
 cd $base_dir
@@ -40,7 +40,7 @@ cd physx/
 ./generate_projects${script_suffix} emscripten-wasm
 echo "|||  COMPILE |||"
 cd compiler/emscripten-wasm-$mode
-ninja -j8
+ninja
 
 echo "|||  COPY  |||"
 cd $base_dir
@@ -49,9 +49,9 @@ cp $base_dir/physx/bin/emscripten/$mode/physx.$mode.asm.js $base_dir/builds/phys
 cp $base_dir/physx/bin/emscripten/$mode/physx.$mode.wasm.js $base_dir/builds/physx.$mode.wasm.js
 cp $base_dir/physx/bin/emscripten/$mode/physx.$mode.wasm.wasm $base_dir/builds/physx.$mode.wasm.wasm
 
-cp -r $base_dir/builds/physx.$mode.asm.js ../../cocos-engine/native/external/emscripten/physx/physx.$mode.asm.js
-cp -r $base_dir/builds/physx.$mode.wasm.js ../../cocos-engine/native/external/emscripten/physx/physx.$mode.wasm.js
-cp -r $base_dir/builds/physx.$mode.wasm.wasm ../../cocos-engine/native/external/emscripten/physx/physx.$mode.wasm.wasm
+# cp -r $base_dir/builds/physx.$mode.asm.js ../../cocos-engine/native/external/emscripten/physx/physx.$mode.asm.js
+# cp -r $base_dir/builds/physx.$mode.wasm.js ../../cocos-engine/native/external/emscripten/physx/physx.$mode.wasm.js
+# cp -r $base_dir/builds/physx.$mode.wasm.wasm ../../cocos-engine/native/external/emscripten/physx/physx.$mode.wasm.wasm
 
 echo "|||  FINISH  |||"
 
