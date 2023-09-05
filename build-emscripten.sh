@@ -1,29 +1,46 @@
 #!/bin/bash
 # emscripten 3.1.42
 echo -e "\033[01;32m --------------- START -------------------- \033[0m"
-now=`date +'%Y-%m-%d %H:%M:%S'`
-start_time=$(date --date="$now" +%s)
+
+get_current_time_in_seconds() {
+    local now=$(date +'%Y-%m-%d %H:%M:%S')
+    local total_seconds
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        total_seconds=$(date -j -f "%Y-%m-%d %H:%M:%S" "$now" "+%s")
+    else
+        total_seconds=$(date --date="$now" +%s)
+    fi
+    echo "$total_seconds"  # 输出结果到标准输出
+}
+
+start_time=$(get_current_time_in_seconds)
 
 base_dir=$(cd "$(dirname "$0")";pwd)
 mode="release"
 if [ $1 ]; then mode=$1; fi
 
+if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin" ]]; then
+    script_suffix='.bat'
+else
+	script_suffix='.sh'
+fi
+
 echo "--------|||  BUILD JS  |||--------"
 echo "|||  GENERATE |||"
 cd physx/
-./generate_projects.bat emscripten-js
+./generate_projects${script_suffix} emscripten-js
 echo "|||  COMPILE |||"
 cd compiler/emscripten-js-$mode
-ninja
+ninja -j8
 
 echo "--------|||  BUILD WASM  |||--------"
 cd $base_dir
 echo "|||  GENERATE |||"
 cd physx/
-./generate_projects.bat emscripten-wasm
+./generate_projects${script_suffix} emscripten-wasm
 echo "|||  COMPILE |||"
 cd compiler/emscripten-wasm-$mode
-ninja
+ninja -j8
 
 echo "|||  COPY  |||"
 cd $base_dir
@@ -38,9 +55,7 @@ cp -r $base_dir/builds/physx.$mode.wasm.wasm ../../cocos-engine/native/external/
 
 echo "|||  FINISH  |||"
 
-now=`date +'%Y-%m-%d %H:%M:%S'`
-end_time=$(date --date="$now" +%s);
+end_time=$(get_current_time_in_seconds)
 echo -e "\033[01;32m Time Used: "$((end_time-start_time))"s  \033[1m"
 echo -e "\033[01;32m ------------- END -----------------  \033[0m"
 
-read
