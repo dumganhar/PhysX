@@ -1,5 +1,8 @@
 #!/bin/bash
-# emscripten 3.1.42
+# emscripten 3.1.41
+
+set -e
+
 echo -e "\033[01;32m --------------- START -------------------- \033[0m"
 
 get_current_time_in_seconds() {
@@ -10,7 +13,7 @@ get_current_time_in_seconds() {
     else
         total_seconds=$(date --date="$now" +%s)
     fi
-    echo "$total_seconds"  # 输出结果到标准输出
+    echo "$total_seconds"
 }
 
 start_time=$(get_current_time_in_seconds)
@@ -29,6 +32,14 @@ echo "--------|||  BUILD JS  |||--------"
 echo "|||  GENERATE |||"
 cd physx/
 ./generate_projects${script_suffix} emscripten-js
+
+if [ $? -eq 0 ]; then
+    echo "Generated Project successfully"
+else
+    echo "Failed to generate Project"
+    exit 1
+fi
+
 echo "|||  COMPILE |||"
 cd compiler/emscripten-js-$mode
 ninja
@@ -49,9 +60,9 @@ cp $base_dir/physx/bin/emscripten/$mode/physx.$mode.asm.js $base_dir/builds/phys
 cp $base_dir/physx/bin/emscripten/$mode/physx.$mode.wasm.js $base_dir/builds/physx.$mode.wasm.js
 cp $base_dir/physx/bin/emscripten/$mode/physx.$mode.wasm.wasm $base_dir/builds/physx.$mode.wasm.wasm
 
-# cp -r $base_dir/builds/physx.$mode.asm.js ../../cocos-engine/native/external/emscripten/physx/physx.$mode.asm.js
-# cp -r $base_dir/builds/physx.$mode.wasm.js ../../cocos-engine/native/external/emscripten/physx/physx.$mode.wasm.js
-# cp -r $base_dir/builds/physx.$mode.wasm.wasm ../../cocos-engine/native/external/emscripten/physx/physx.$mode.wasm.wasm
+cp -r $base_dir/builds/physx.$mode.asm.js ../../cocos-engine/native/external/emscripten/physx/physx.$mode.asm.js
+cp -r $base_dir/builds/physx.$mode.wasm.js ../../cocos-engine/native/external/emscripten/physx/physx.$mode.wasm.js
+cp -r $base_dir/builds/physx.$mode.wasm.wasm ../../cocos-engine/native/external/emscripten/physx/physx.$mode.wasm.wasm
 
 echo "|||  FINISH  |||"
 
