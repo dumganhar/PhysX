@@ -45,3 +45,9 @@ jobs:
           export EMSCRIPTEN=${EMSDK}/upstream/emscripten
           ./build-emscripten.sh
           echo "============== Compile Successfully! =============="
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with: 
+          name: physx-fat
+          path: builds
