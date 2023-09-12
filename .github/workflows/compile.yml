@@ -42,5 +42,6 @@ jobs:
 
       - name: Compile
         run: |
+          export EMSCRIPTEN=${EMSDK}/upstream/emscripten
           ./build-emscripten.sh
           echo "============== Compile Successfully! =============="
