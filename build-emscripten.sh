@@ -28,35 +28,11 @@ else
     script_suffix='.sh'
 fi
 
-echo "--------|||  CLEAR output  |||--------"
-rm -rf physx/bin
-
-echo "--------|||  BUILD JS  |||--------"
-echo "|||  GENERATE |||"
-cd physx/
-./generate_projects${script_suffix} emscripten-js
-
-if [ $? -eq 0 ]; then
-    echo "Generated Project successfully"
-else
-    echo "Failed to generate Project"
-    exit 1
-fi
-
-echo "|||  COMPILE |||"
-cd compiler/emscripten-js-$mode
-ninja
-
-echo "|||  COPY  |||"
-cd $base_dir
-mkdir -p $base_dir/builds
-
-cp $base_dir/physx/bin/emscripten/$mode/physx-fat.$mode.asm.a $base_dir/builds/
 
 echo "--------|||  CLEAR output  |||--------"
 rm -rf physx/bin
 
-echo "--------|||  BUILD WASM  |||--------"
+echo "--------|||  BUILD  |||--------"
 cd $base_dir
 echo "|||  GENERATE |||"
 cd physx/
@@ -68,7 +44,7 @@ ninja
 echo "|||  COPY  |||"
 cd $base_dir
 mkdir -p $base_dir/builds
-cp $base_dir/physx/bin/emscripten/$mode/physx-fat.$mode.wasm.a $base_dir/builds/
+cp $base_dir/physx/bin/emscripten/$mode/physx-fat.$mode.a $base_dir/builds/
 
 
 echo "|||  FINISH  |||"
