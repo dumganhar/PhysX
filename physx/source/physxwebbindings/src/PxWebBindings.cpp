@@ -910,7 +910,7 @@ EMSCRIPTEN_BINDINGS(physx) {
       .property("materialIndex1", &PxHeightFieldSample::materialIndex1);
   register_vector<PxHeightFieldSample>("PxHeightFieldSampleVector");
 
-  register_vector<PxU16>("PxU16Vector");
+  //cjh register_vector<PxU16>("PxU16Vector");
   class_<PxCooking>("PxCooking")
       .function("createConvexMesh",
                 optional_override([](PxCooking &cooking,

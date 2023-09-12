@@ -86,8 +86,8 @@ SET(PHYSX_WEB_BINDINGS_SOURCE
 )
 SOURCE_GROUP(src FILES ${PHYSX_WEB_BINDINGS_SOURCE})
 
-ADD_EXECUTABLE(PhysXWebBindings ${PHYSX_WEB_BINDINGS_SOURCE}
-)
+# ADD_EXECUTABLE(PhysXWebBindings ${PHYSX_WEB_BINDINGS_SOURCE})
+ADD_LIBRARY(PhysXWebBindings STATIC ${PHYSX_WEB_BINDINGS_SOURCE})
 
 SET_TARGET_PROPERTIES(PhysXWebBindings PROPERTIES
 	OUTPUT_NAME PhysXWebBindings
@@ -109,6 +109,23 @@ TARGET_LINK_LIBRARIES(PhysXWebBindings
 	# PUBLIC PhysXCharacterKinematic PhysXCooking PhysXExtensions PhysXVehicle
 )
 GET_TARGET_PROPERTY(PHYSXFOUNDATION_INCLUDES PhysXFoundation INTERFACE_INCLUDE_DIRECTORIES)
+
+add_dependencies(PhysXWebBindings PhysX PhysXCommon PhysXFoundation PhysXExtensions PhysXCooking PhysXCharacterKinematic)
+
+add_custom_command(TARGET PhysXWebBindings POST_BUILD
+	COMMAND emar -x physx.${CMAKE_BUILD_TYPE}.wasm.a
+	COMMAND emar -x PhysX_static.a
+	COMMAND emar -x PhysXCharacterKinematic_static.a
+	COMMAND emar -x PhysXCommon_static.a
+	COMMAND emar -x PhysXCooking_static.a
+	COMMAND emar -x PhysXExtensions_static.a
+	COMMAND emar -x PhysXFoundation.a
+	COMMAND emar -x PhysXPvdSDK_static.a
+    COMMAND emar -rcs physx-fat.${CMAKE_BUILD_TYPE}.wasm.a *.o
+    COMMAND ${CMAKE_COMMAND} -E remove *.o
+    WORKING_DIRECTORY ${PHYSX_ROOT_DIR}/bin/emscripten/${CMAKE_BUILD_TYPE}
+    COMMENT "Build a fat static library"
+)
 
 TARGET_INCLUDE_DIRECTORIES(PhysXWebBindings 
 	PRIVATE ${PHYSX_ROOT_DIR}/include
