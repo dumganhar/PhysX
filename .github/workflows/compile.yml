@@ -47,7 +47,26 @@ jobs:
           echo "============== Compile Successfully! =============="
 
       - name: Upload Artifact
+        if: github.event_name != 'release'
         uses: actions/upload-artifact@v3
         with: 
           name: physx-fat
           path: builds
+
+      - name: Pack dist files
+        if: github.event_name == 'release'
+        uses: thedoctor0/zip-release@a24011d8d445e4da5935a7e73c1f98e22a439464
+        with:
+          type: 'zip'
+          directory: 'builds'
+          path: '.'
+          filename: 'physx-fat.zip'
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: builds/physx-fat.zip
+          asset_name: physx-fat.zip
+          tag: ${{ github.ref }}
