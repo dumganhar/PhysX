@@ -1,0 +1,46 @@
+name: Compile WASM Library
+
+on: [pull_request, push]
+
+# github.head_ref is only defined on pull_request events
+concurrency:
+  group: ${{ github.workflow }}-${{ github.actor }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    if:
+      (! contains(github.event.pull_request.body, '[X] does not change any runtime related code or build configuration'))
+    name: "Emscripten"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup emsdk
+        uses: dumganhar/setup-emsdk@997d2cde2deabda085a11f98e86e842915b0e846
+        with:
+          version: 3.1.41
+          actions-cache-folder: 'emsdk-cache'
+
+      - name: Verify
+        run: |
+          which emcc
+          emcc -v
+          which emcmake
+          which emmake
+
+      - name: Install ninja
+        run: |
+          if ! command -v ninja &> /dev/null; then
+              echo "Ninja not found, installing..."
+              # sudo apt update
+              sudo apt install ninja-build
+          else
+              echo "Ninja is already installed."
+          fi
+          which ninja
+
+      - name: Compile
+        run: |
+          ./build-emscripten.sh
+          echo "============== Compile Successfully! =============="
