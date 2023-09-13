@@ -62,7 +62,7 @@ jobs:
         if: github.event_name != 'release'
         uses: actions/upload-artifact@v3
         with: 
-          name: physx-fat.zip
+          name: physx-fat
           path: builds
 
       - name: Pack dist files
