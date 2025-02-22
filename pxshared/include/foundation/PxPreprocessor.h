@@ -184,6 +184,9 @@ define anything not defined on this platform to 0
 #ifndef PX_ANDROID
 #define PX_ANDROID 0
 #endif
+#ifndef PX_OPENHARMONY
+#define PX_OPENHARMONY 0
+#endif
 #ifndef PX_LINUX
 #define PX_LINUX 0
 #endif

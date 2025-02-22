@@ -274,7 +274,7 @@ void ThreadImpl::kill()
 #ifndef ANDROID
 	if(getThread(this)->state == _PxThreadStarted)
 	{
-		#if defined(PX_OPENHARMONY) && PX_OPENHARMONY
+		#if PX_OPENHARMONY
 		pthread_kill(getThread(this)->thread, 0);
 		#else
 		pthread_cancel(getThread(this)->thread);
