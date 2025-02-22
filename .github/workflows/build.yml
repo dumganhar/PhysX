@@ -97,9 +97,9 @@ jobs:
     - name: Check minos Version
       run: |
         echo "Check LC_VERSION_MIN_IPHONEOS ..."
-        otool -l ./physx/bin/mac.universal/release/libPhysX_static_64.a | grep -A5 -B1 -m1 "LC_VERSION_MIN_IPHONEOS" || true
+        otool -l ./physx/bin/ios.arm_64/release/libPhysX_static_64.a | grep -A5 -B1 -m1 "LC_VERSION_MIN_IPHONEOS" || true
         echo "Check LC_BUILD_VERSION ..."
-        otool -l ./physx/bin/mac.universal/release/libPhysX_static_64.a | grep -A5 -B1 -m1 "LC_BUILD_VERSION" || true
+        otool -l ./physx/bin/ios.arm_64/release/libPhysX_static_64.a | grep -A5 -B1 -m1 "LC_BUILD_VERSION" || true
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
