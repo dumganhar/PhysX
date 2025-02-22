@@ -27,7 +27,6 @@ jobs:
     - name: Build
       run: |
         cd physx/compiler/mac64
-        xcodebuild -list -project PhysXSDK.xcodeproj
         xcodebuild ARCHS="x86_64 arm64" VALID_ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
     
     - name: Show Result
@@ -51,15 +50,16 @@ jobs:
       run: |
         sudo gem install xcpretty
 
-    - name: Create Project
+    - name: Create Project iOS arm64
       run: |
         cd physx
-        ./generate_projects.sh ios64
+        rm -rf compiler/ios64
+        ./generate_projects.sh ios64 OS64
+
     - name: Build iOS arm64
       run: |
         cd physx/compiler/ios64
-        xcodebuild -list -project PhysXSDK.xcodeproj
-        xcodebuild ARCHS="arm64" VALID_ARCHS="arm64" ONLY_ACTIVE_ARCH=NO -target arm64-apple-ios11.0 -sdk iphoneos -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
+        xcodebuild ARCHS="arm64" VALID_ARCHS="arm64" ONLY_ACTIVE_ARCH=NO -sdk iphoneos -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
     
     - name: Show Result
       run: |
@@ -69,14 +69,41 @@ jobs:
         echo "Show lipo info: "
         ls bin/ios64.arm/release/*.a | xargs lipo -info
 
+    - name: Create Project iOS simulator x86_64
+      run: |
+        cd physx
+        rm -rf compiler/ios64
+        ./generate_projects.sh ios64 SIMULATOR64
+
     - name: Build iOS simulator x86_64
+      run: |
+        rm -rf physx/bin/ios64.arm
+        rm -rf physx/compiler/ios64 
+        cd physx/compiler/ios64
+        xcodebuild ARCHS="x86_64" VALID_ARCHS="x86_64" ONLY_ACTIVE_ARCH=NO -sdk iphonesimulator -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
+   
+    - name: Show Result
+      run: |
+        cd physx
+        echo "Files in bin/ios64.arm/release: "
+        ls -l bin/ios64.arm/release
+        echo "Show lipo info: "
+        ls bin/ios64.arm/release/*.a | xargs lipo -info
+
+    - name: Create Project iOS simulator arm64
+      run: |
+        cd physx
+        rm -rf compiler/ios64
+        ./generate_projects.sh ios64 SIMULATORARM64
+
+    - name: Build iOS simulator arm64
       run: |
         rm -rf physx/bin/ios64.arm
         rm -rf physx/compiler/ios64
         cd physx/compiler/ios64
         xcodebuild -list -project PhysXSDK.xcodeproj
-        xcodebuild ARCHS="x86_64" VALID_ARCHS="x86_64" ONLY_ACTIVE_ARCH=NO -target arm64-apple-ios11.0-simulator -sdk iphonesimulator -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
-   
+        xcodebuild ARCHS="arm64" VALID_ARCHS="arm64" ONLY_ACTIVE_ARCH=NO -sdk iphonesimulator -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
+     
     - name: Show Result
       run: |
         cd physx

@@ -340,10 +340,11 @@ class CMakePreset:
             # outString = outString + ' -DPX_OUTPUT_ARCH=x86'
             return outString
         elif self.targetPlatform == 'ios64':
+            print('iOSPlatform=' + iOSPlatform)
             outString = outString + ' -DTARGET_BUILD_PLATFORM=ios'
             outString = outString + ' -DCMAKE_TOOLCHAIN_FILE=\"' + \
                 os.environ['PM_CMakeModules_PATH'] + '/ios/ios.toolchain.cmake\"'
-            outString = outString + ' -DPX_OUTPUT_ARCH=arm -DIOS_DEPLOYMENT_TARGET=\"11.0\"'
+            outString = outString + ' -DPX_OUTPUT_ARCH=arm -DPLATFORM=' + iOSPlatform
             return outString
         elif self.targetPlatform == 'emscripten':
             outString = outString + '-G \"Ninja\"'
@@ -430,7 +431,7 @@ def presetProvided(pName):
 
 
 def main():
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         presetName = noPresetProvided()
         os.chdir(os.environ['PHYSX_ROOT_DIR'])
         if sys.platform == 'win32':
@@ -439,6 +440,10 @@ def main():
             os.system('./generate_projects.sh ' + presetName)
     else:
         presetName = sys.argv[1]
+        global iOSPlatform
+        if len(sys.argv) > 2:
+            iOSPlatform = sys.argv[2]
+
         if filterPreset(presetName):
             presetProvided(presetName)
         else:
