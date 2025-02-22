@@ -321,10 +321,10 @@ jobs:
         echo "dumpbinPath=$dumpbinPath"
         echo "dumpbinPath=$dumpbinPath" >> $env:GITHUB_ENV
 
-        - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
   
     - name: Create Project
       run: |
@@ -336,14 +336,14 @@ jobs:
         cd physx/compiler/vc16win64-release
         cmake --build . --config release
 
-    # - name: Show Result
-    #   run: |
-    #     cd physx
-    #     echo "Files in bin/openharmony.${{ matrix.config.arch }}/release: "
-    #     ls -l bin/openharmony.${{ matrix.config.arch }}/release
+    - name: Show Result
+      run: |
+        cd physx
+        echo "Files in bin/vc16win64/release: "
+        ls -l bin/vc16win64/release
 
-    # - name: Upload Artifact (.a)
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: openharmony-${{ matrix.config.arch }}
-    #     path: physx/bin/openharmony.${{ matrix.config.arch }}/release/*.a
+    - name: Upload Artifact (.a)
+      uses: actions/upload-artifact@v4
+      with:
+        name: vc16win64
+        path: physx/bin/vc16win64/release/*.lib
