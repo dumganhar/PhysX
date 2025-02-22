@@ -281,22 +281,22 @@ jobs:
       run: |
         export PM_OpenHarmonyNDK_PATH=$HOME/openharmony/sdk/default/openharmony/native
         cd physx
-        ./generate_projects.sh android-${{ matrix.config.arch }}
+        ./generate_projects.sh openharmony-${{ matrix.config.arch }}
   
     - name: Build
       run: |
-        cd physx/compiler/android-${{ matrix.config.arch }}-release
+        cd physx/compiler/openharmony-${{ matrix.config.arch }}-release
         cpu_count=$(nproc)
         VERBOSE=1 make -j${cpu_count}
 
     - name: Show Result
       run: |
         cd physx
-        echo "Files in bin/android.${{ matrix.config.arch }}.fp-soft/release: "
-        ls -l bin/android.${{ matrix.config.arch }}.fp-soft/release
+        echo "Files in bin/openharmony.${{ matrix.config.arch }}.fp-soft/release: "
+        ls -l bin/openharmony.${{ matrix.config.arch }}.fp-soft/release
 
     - name: Upload Artifact (.a)
       uses: actions/upload-artifact@v4
       with:
-        name: android-${{ matrix.config.arch }}
-        path: physx/bin/android.${{ matrix.config.arch }}.fp-soft/release/*.a
+        name: openharmony-${{ matrix.config.arch }}
+        path: physx/bin/openharmony.${{ matrix.config.arch }}.fp-soft/release/*.a
