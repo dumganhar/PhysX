@@ -335,17 +335,18 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        cd physx/compiler/vc16win64-release
+        cd physx/compiler/vc16win64
         cmake --build . --config release
 
     - name: Show Result
       shell: bash
       run: |
         cd physx
+        ls -l bin/
         echo "Files in bin/vc16win64/release: "
         ls -l bin/vc16win64/release
 
-    - name: Upload Artifact (.a)
+    - name: Upload Artifact (.lib)
       uses: actions/upload-artifact@v4
       with:
         name: vc16win64
