@@ -59,7 +59,7 @@ jobs:
       run: |
         cd physx/compiler/ios64
         xcodebuild -list -project PhysXSDK.xcodeproj
-        xcodebuild ARCHS="arm64" VALID_ARCHS="arm64" ONLY_ACTIVE_ARCH=NO -sdk iphoneos -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
+        xcodebuild ARCHS="arm64" VALID_ARCHS="arm64" ONLY_ACTIVE_ARCH=NO -target arm64-apple-ios11.0 -sdk iphoneos -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
     
     - name: Show Result
       run: |
@@ -75,7 +75,7 @@ jobs:
         rm -rf physx/compiler/ios64
         cd physx/compiler/ios64
         xcodebuild -list -project PhysXSDK.xcodeproj
-        xcodebuild ARCHS="x86_64" VALID_ARCHS="x86_64" ONLY_ACTIVE_ARCH=NO -sdk iphonesimulator -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
+        xcodebuild ARCHS="x86_64" VALID_ARCHS="x86_64" ONLY_ACTIVE_ARCH=NO -target arm64-apple-ios11.0-simulator -sdk iphonesimulator -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
    
     - name: Show Result
       run: |
