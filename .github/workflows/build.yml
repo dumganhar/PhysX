@@ -183,6 +183,7 @@ jobs:
 
     - name: Create Project
       run: |
+        export PM_AndroidNDK_PATH=${{ steps.setup-ndk.outputs.ndk-path }}
         cd physx
         ./generate_projects.sh android-${{ matrix.config.arch }}
   
