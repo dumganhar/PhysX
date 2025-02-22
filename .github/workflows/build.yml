@@ -88,3 +88,44 @@ jobs:
       with:
         name: ios-${{ matrix.config.sdk }}-${{ matrix.config.arch }}
         path: physx/bin/ios.arm_64/release/*.a
+
+  create-fat-library:
+    name: "Create iOS Fat Library"
+    runs-on: macos-latest
+    needs: build-ios
+    steps:
+    - name: Download iOS Artifacts (ios-iphoneos-arm64)
+      uses: actions/download-artifact@v4
+      with:
+        name: ios-iphoneos-arm64
+        path: artifacts/ios-iphoneos-arm64
+
+    - name: Download iOS Artifacts (ios-iphonesimulator-x86_64)
+      uses: actions/download-artifact@v4
+      with:
+        name: ios-iphonesimulator-x86_64
+        path: artifacts/ios-iphonesimulator-x86_64
+
+    - name: Create Fat Library
+      run: |
+        dir1="artifacts/ios-iphoneos-arm64"
+        dir2="artifacts/ios-iphonesimulator-x86_64"
+        output_dir="artifacts/ios-fat"
+
+        mkdir -p "$output_dir"
+
+        for file in "$dir1"/*.a; do
+          filename=$(basename "$file")
+          if [[ -f "$dir2/$filename" ]]; then
+              lipo -create "$file" "$dir2/$filename" -output "$output_dir/$filename"
+              echo "Created fat library: $output_dir/$filename"
+          else
+              echo "Skipping $filename: No matching file in $dir2"
+          fi
+        done
+
+    - name: Upload Fat Library
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-fat
+        path: artifacts/ios-fat
