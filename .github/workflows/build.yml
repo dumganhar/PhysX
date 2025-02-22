@@ -11,6 +11,11 @@ jobs:
     name: "macOS"
     runs-on: macos-latest
     steps:
+    - name: Show CMake Version
+      run: |
+        which cmake
+        cmake --version
+
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -67,6 +72,10 @@ jobs:
           - { sdk: iphonesimulator, arch: x86_64, toolchain: SIMULATOR64 }
           - { sdk: iphonesimulator, arch: arm64, toolchain: SIMULATORARM64 }
     steps:
+    - name: Show CMake Version
+      run: |
+        which cmake
+        cmake --version
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -169,6 +178,10 @@ jobs:
           - { arch: x86_64 }
 
     steps:
+    - name: Show CMake Version
+      run: |
+        which cmake
+        cmake --version
     - uses: nttld/setup-ndk@v1
       id: setup-ndk
       with:
