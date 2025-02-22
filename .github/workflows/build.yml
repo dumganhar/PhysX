@@ -37,6 +37,12 @@ jobs:
         echo "Show lipo info: "
         ls bin/mac.universal/release/*.a | xargs lipo -info
 
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mac-universal
+        path: physx/bin/mac.universal/release/*.a
+
   build-ios:
     name: "iOS"
     runs-on: macos-latest
