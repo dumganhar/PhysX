@@ -279,13 +279,13 @@ jobs:
 
     - name: Create Project
       run: |
-        export PM_OpenHarmonyNDK_PATH=$HOME/openharmony/sdk/default/openharmony/native
+        export PM_OpenHarmonyNDK_PATH=$HOME/openharmony/commandline-tools-linux-x64-5.0.7.200/sdk/default/openharmony/native
         cd physx
         ./generate_projects.sh openharmony-${{ matrix.config.arch }}
   
     - name: Build
       run: |
-        export PATH=$HOME/openharmony/sdk/default/openharmony/native/build-tools/cmake/bin:$PATH
+        export PATH=$HOME/openharmony/commandline-tools-linux-x64-5.0.7.200/sdk/default/openharmony/native/build-tools/cmake/bin:$PATH
         cd physx/compiler/openharmony-${{ matrix.config.arch }}-release
         cpu_count=$(nproc)
         ninja
