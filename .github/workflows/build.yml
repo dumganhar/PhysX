@@ -353,3 +353,51 @@ jobs:
       with:
         name: win64
         path: physx/bin/win.x86_64.vc142.mt/release/*.lib
+
+  build_emscripten:
+    name: emscripten
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Checkout EMSDK
+        uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          path: emsdk
+
+      - name: Setup EMSDK
+        run: |
+          sudo apt-get install python3
+          sudo apt-get install git
+          cd emsdk
+          ./emsdk install 3.1.41
+          ./emsdk activate 3.1.41
+          source ./emsdk_env.sh
+          # Verify
+          emcc -v
+
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@master
+
+      - name: Build
+        run: |
+          # Setup EMSDK env
+          source emsdk/emsdk_env.sh
+          export EMSCRIPTEN="$EMSDK/upstream/emscripten"
+          echo "Start release build"
+          ./build-emscripten.sh
+          echo "Build finished"
+
+      - name: Show Result
+        run: |
+          ls -l builds
+    
+      - name: Upload Artifact (wasm/asmjs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: emscripten
+          path: builds
