@@ -15,6 +15,11 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: recursive
+
+    - name: Install xcpretty
+      run: |
+        sudo gem install xcpretty
+
     - name: Create Project
       run: |
         cd physx
@@ -23,7 +28,7 @@ jobs:
       run: |
         cd physx/compiler/mac64
         xcodebuild -list -project PhysXSDK.xcodeproj
-        xcodebuild ARCHS="x86_64 arm64" VALID_ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO -scheme install -configuration release build
+        xcodebuild ARCHS="x86_64 arm64" VALID_ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
         echo "Files in bin/mac.universal/release: "
         ls -l bin/mac.universal/release
         echo "Show lipo info: "
