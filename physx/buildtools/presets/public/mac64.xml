@@ -2,7 +2,7 @@
 <preset name="mac64" comment="macOS Xcode PhysX general settings">
   <platform targetPlatform="mac64" compiler="xcode" />
   <CMakeSwitches>
-    <cmakeSwitch name="PX_BUILDSNIPPETS" value="True" comment="Generate the snippets" />
+    <cmakeSwitch name="PX_BUILDSNIPPETS" value="False" comment="Generate the snippets" />
     <cmakeSwitch name="PX_GENERATE_STATIC_LIBRARIES" value="True" comment="Generate static libraries" />
     <cmakeSwitch name="NV_FORCE_64BIT_SUFFIX" value="True" comment="Force a 64 bit suffix for platforms that don't register properly." />
     <cmakeSwitch name="NV_FORCE_32BIT_SUFFIX" value="False" comment="Force a 32 bit suffix for platforms that don't register properly." />

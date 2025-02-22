@@ -107,8 +107,13 @@ Operating system defines, see http://sourceforge.net/p/predef/wiki/OperatingSyst
 	#include <TargetConditionals.h>
 	#if TARGET_OS_IPHONE && TARGET_OS_MACCATALYST
 		#define PX_OSX 1
-	#elif TARGET_OS_IPHONE
+	#elif TARGET_OS_IPHONE || TARGET_OS_SIMULATOR
 		#define PX_IOS 1
+		#ifdef TARGET_OS_SIMULATOR
+			#define PX_IOS_SIMULATOR 1
+		#else
+			#define PX_IOS_SIMULATOR 0
+		#endif
 	#else
 		#define PX_OSX 1
 	#endif
@@ -178,6 +183,9 @@ define anything not defined on this platform to 0
 #endif
 #ifndef PX_ANDROID
 #define PX_ANDROID 0
+#endif
+#ifndef PX_OPENHARMONY
+#define PX_OPENHARMONY 0
 #endif
 #ifndef PX_LINUX
 #define PX_LINUX 0
