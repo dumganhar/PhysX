@@ -338,7 +338,7 @@ class CMakePreset:
                     '/linux/LinuxAarch64.cmake\"'
             return outString
         elif self.targetPlatform == 'mac64':
-            outString = outString + ' -DTARGET_BUILD_PLATFORM=mac'
+            outString = outString + ' -DTARGET_BUILD_PLATFORM=mac -DCMAKE_OSX_DEPLOYMENT_TARGET=\"10.9\"'
             # outString = outString + ' -DPX_OUTPUT_ARCH=x86'
             return outString
         elif self.targetPlatform == 'ios64':
