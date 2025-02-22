@@ -55,12 +55,28 @@ jobs:
       run: |
         cd physx
         ./generate_projects.sh ios64
-    - name: Build
+    - name: Build iOS arm64
       run: |
         cd physx/compiler/ios64
         xcodebuild -list -project PhysXSDK.xcodeproj
-        xcodebuild ARCHS="arm64" VALID_ARCHS="arm64" ONLY_ACTIVE_ARCH=NO -sdk iphoneos -scheme install -configuration release build | xcpretty
+        xcodebuild ARCHS="arm64" VALID_ARCHS="arm64" ONLY_ACTIVE_ARCH=NO -sdk iphoneos -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
     
+    - name: Show Result
+      run: |
+        cd physx
+        echo "Files in bin/ios64.arm/release: "
+        ls -l bin/ios64.arm/release
+        echo "Show lipo info: "
+        ls bin/ios64.arm/release/*.a | xargs lipo -info
+
+    - name: Build iOS simulator x86_64
+      run: |
+        rm -rf physx/bin/ios64.arm
+        rm -rf physx/compiler/ios64
+        cd physx/compiler/ios64
+        xcodebuild -list -project PhysXSDK.xcodeproj
+        xcodebuild ARCHS="x86_64" VALID_ARCHS="x86_64" ONLY_ACTIVE_ARCH=NO -sdk iphonesimulator -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
+   
     - name: Show Result
       run: |
         cd physx
