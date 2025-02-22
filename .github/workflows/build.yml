@@ -327,6 +327,7 @@ jobs:
         submodules: recursive
   
     - name: Create Project
+      shell: cmd
       run: |
         cd physx
         generate_projects.bat vc16win64
