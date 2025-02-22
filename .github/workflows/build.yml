@@ -349,5 +349,5 @@ jobs:
     - name: Upload Artifact (.lib)
       uses: actions/upload-artifact@v4
       with:
-        name: vc16win64
+        name: win64
         path: physx/bin/vc16win64/release/*.lib
