@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+#   release:
+#     types: [published]
+
+jobs:
+  build-mac:
+    name: "macOS"
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Create Project
+      run: |
+        cd physx
+        ./generate_projects.sh mac64
+    - name: Build
+      run: |
+        cd physx/compiler/mac64
+        xcodebuild -list -project PhysXSDK.xcodeproj
+        xcodebuild -scheme install -configuration release build
+
+    # - name: Build & Install x86_64
+    #   working-directory: build
+    #   run: |
+    #       set -x
+    #       cpu_count=$(sysctl -n hw.ncpu)
+    #       SWIGJOBS=-j$cpu_count
+    #       cmake --build . --config Release $SWIGJOBS --target install
+    #       ./swig -version && ./swig -pcreversion
+    # - name: Configure arm64
+    #   run: |
+    #       mkdir -p build_arm64
+    #       cd build_arm64
+    #       PCRE_ARM64_ROOT=$GITHUB_WORKSPACE/pcre2/10.42
+    #       cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_INSTALL_PREFIX="./swig-mac" -DCMAKE_C_FLAGS="-DPCRE2_STATIC" -DCMAKE_CXX_FLAGS="-DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=$PCRE_ARM64_ROOT/include -DPCRE2_LIBRARY=$PCRE_ARM64_ROOT/lib/libpcre2-8.a -DBISON_EXECUTABLE=/usr/bin/bison
+
+    # - name: Build & Install arm64
+    #   working-directory: build_arm64
+    #   run: |
+    #       set -x
+    #       cpu_count=$(sysctl -n hw.ncpu)
+    #       SWIGJOBS=-j$cpu_count
+    #       cmake --build . --config Release $SWIGJOBS
+    # - name: Build Fat Library
+    #   run: |
+    #     mv build/swig-mac/bin/swig .
+    #     lipo -create ./swig ./build_arm64/swig -output ./build/swig-mac/bin/swig
+    #     lipo -info ./build/swig-mac/bin/swig
+
+    # - name: Upload Artifact
+    #   uses: actions/upload-artifact@v3
+    #   with: 
+    #     name: swig-mac
+    #     path: build/swig-mac
+    # - name: Pack dist files
+    #   if: github.event_name == 'release'
+    #   uses: thedoctor0/zip-release@main
+    #   with:
+    #     type: 'zip'
+    #     directory: 'build/swig-mac'
+    #     path: '.'
+    #     filename: 'swig-mac.zip'
+    #     exclusions: '*/csharp/* */d/* */go/* */guile/* */java/* */javascript/jsc/* */javascript/v8/* */lua/* */mzscheme/* */ocaml/* */octave/* */perl5/* */php/* */python/* */r/* */ruby/* */scilab/* */tcl/* */xml/*'
+
+    # - name: Upload to Release
+    #   if: github.event_name == 'release'
+    #   uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+    #   with:
+    #     repo_token: ${{ secrets.GITHUB_TOKEN }}
+    #     file: build/swig-mac/swig-mac.zip
+    #     asset_name: swig-mac.zip
+    #     tag: ${{ github.ref }}
+
