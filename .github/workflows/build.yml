@@ -32,6 +32,7 @@ jobs:
     
     - name: Show Result
       run: |
+        cd physx/compiler/mac64
         echo "Files in bin/mac.universal/release: "
         ls -l bin/mac.universal/release
         echo "Show lipo info: "
