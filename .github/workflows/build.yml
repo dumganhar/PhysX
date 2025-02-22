@@ -302,12 +302,8 @@ jobs:
 
   build_windows:
     name: "windows"
-    runs-on: windows-latest
-    steps:
-    - uses: ilammy/msvc-dev-cmd@v1
-      with:
-        vsversion: 2019
-    
+    runs-on: windows-2019
+    steps:   
     - name: Find Visual Studio Installation Path with vswhere
       id: vswhere
       run: |
@@ -324,3 +320,30 @@ jobs:
         }
         echo "dumpbinPath=$dumpbinPath"
         echo "dumpbinPath=$dumpbinPath" >> $env:GITHUB_ENV
+
+        - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+  
+    - name: Create Project
+      run: |
+        cd physx
+        ./generate_projects.sh vc16win64
+
+    - name: Build
+      run: |
+        cd physx/compiler/vc16win64-release
+        cmake --build . --config release
+
+    # - name: Show Result
+    #   run: |
+    #     cd physx
+    #     echo "Files in bin/openharmony.${{ matrix.config.arch }}/release: "
+    #     ls -l bin/openharmony.${{ matrix.config.arch }}/release
+
+    # - name: Upload Artifact (.a)
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: openharmony-${{ matrix.config.arch }}
+    #     path: physx/bin/openharmony.${{ matrix.config.arch }}/release/*.a
