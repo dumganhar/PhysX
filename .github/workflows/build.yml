@@ -41,6 +41,7 @@ jobs:
     name: "iOS"
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         config:
           - { sdk: iphoneos, arch: arm64, toolchain: OS64 }
@@ -75,44 +76,3 @@ jobs:
         ls -l bin/ios.arm_64/release
         echo "Show lipo info: "
         ls bin/ios.arm_64/release/*.a | xargs lipo -info
-
-    # - name: Create Project (iOS simulator x86_64)
-    #   run: |
-    #     cd physx
-    #     rm -rf compiler/ios64
-    #     rm -rf bin/ios.arm_64
-    #     ./generate_projects.sh ios64 SIMULATOR64
-
-    # - name: Build (iOS simulator x86_64)
-    #   run: |
-    #     cd physx/compiler/ios64
-    #     xcodebuild ARCHS="x86_64" VALID_ARCHS="x86_64" ONLY_ACTIVE_ARCH=NO -sdk iphonesimulator -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
-   
-    # - name: Show Result (iOS simulator x86_64)
-    #   run: |
-    #     cd physx
-    #     echo "Files in bin/ios.arm_64/release: "
-    #     ls -l bin/ios.arm_64/release
-    #     echo "Show lipo info: "
-    #     ls bin/ios.arm_64/release/*.a | xargs lipo -info
-
-    # - name: Create Project (iOS simulator arm64)
-    #   run: |
-    #     cd physx
-    #     rm -rf compiler/ios64
-    #     rm -rf bin/ios.arm_64
-    #     ./generate_projects.sh ios64 SIMULATORARM64
-
-    # - name: Build (iOS simulator arm64)
-    #   run: |
-    #     cd physx/compiler/ios64
-    #     xcodebuild -list -project PhysXSDK.xcodeproj
-    #     xcodebuild ARCHS="arm64" VALID_ARCHS="arm64" ONLY_ACTIVE_ARCH=NO -sdk iphonesimulator -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
-     
-    # - name: Show Result (iOS simulator arm64)
-    #   run: |
-    #     cd physx
-    #     echo "Files in bin/ios.arm_64/release: "
-    #     ls -l bin/ios.arm_64/release
-    #     echo "Show lipo info: "
-    #     ls bin/ios.arm_64/release/*.a | xargs lipo -info

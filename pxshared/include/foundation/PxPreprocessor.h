@@ -109,6 +109,11 @@ Operating system defines, see http://sourceforge.net/p/predef/wiki/OperatingSyst
 		#define PX_OSX 1
 	#elif TARGET_OS_IPHONE || TARGET_OS_SIMULATOR
 		#define PX_IOS 1
+		#ifdef TARGET_OS_SIMULATOR
+			#define PX_IOS_SIMULATOR 1
+		#else
+			#define PX_IOS_SIMULATOR 0
+		#endif
 	#else
 		#define PX_OSX 1
 	#endif
