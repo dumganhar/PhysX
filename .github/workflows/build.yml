@@ -29,6 +29,9 @@ jobs:
         cd physx/compiler/mac64
         xcodebuild -list -project PhysXSDK.xcodeproj
         xcodebuild ARCHS="x86_64 arm64" VALID_ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
+    
+    - name: Show Result
+      run: |
         echo "Files in bin/mac.universal/release: "
         ls -l bin/mac.universal/release
         echo "Show lipo info: "
