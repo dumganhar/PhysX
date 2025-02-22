@@ -329,7 +329,7 @@ jobs:
     - name: Create Project
       run: |
         cd physx
-        ./generate_projects.sh vc16win64
+        generate_projects.bat vc16win64
 
     - name: Build
       run: |
