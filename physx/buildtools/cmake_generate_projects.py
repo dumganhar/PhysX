@@ -1,4 +1,5 @@
 import sys
+import platform
 import os
 import glob
 import os.path
@@ -6,6 +7,7 @@ import shutil
 import subprocess
 import xml.etree.ElementTree
 
+host_os = platform.system().lower()
 
 def packmanExt():
     if sys.platform == 'win32':
@@ -166,7 +168,7 @@ class CMakePreset:
         elif self.targetPlatform == 'openharmony':
             outString = outString + '-G \"Ninja\"'
         elif self.targetPlatform == 'android':
-            outString = outString + '-G \"MinGW Makefiles\"'
+            outString = outString + '-G \"Unix Makefiles\"'
         elif self.targetPlatform == 'linux':
             outString = outString + '-G \"Unix Makefiles\"'
         elif self.targetPlatform == 'linuxAarch64':
@@ -278,7 +280,7 @@ class CMakePreset:
         elif self.targetPlatform == 'android':
             outString = outString + ' -DTARGET_BUILD_PLATFORM=android'
             outString = outString + ' -DCMAKE_TOOLCHAIN_FILE=' + \
-                os.environ['PM_AndroidNDK_PATH'] + '\\build\\cmake\\android.toolchain.cmake'
+                os.environ['PM_AndroidNDK_PATH'] + '/build/cmake/android.toolchain.cmake'
                 # os.environ['PM_CMakeModules_PATH'] + \
                 # '/android/android.toolchain.cmake'
             # outString = outString + ' -DANDROID_STL=\"gnustl_static\"'
@@ -290,7 +292,7 @@ class CMakePreset:
                 outString = outString + ' -DANDROID_NDK=' + \
                     os.environ['PM_AndroidNDK_PATH']
                 outString = outString + ' -DCMAKE_MAKE_PROGRAM=\"' + \
-                    os.environ['PM_AndroidNDK_PATH'] + '\\prebuilt\\windows-x86_64\\bin\\make.exe\"'
+                    os.environ['PM_AndroidNDK_PATH'] + '/prebuilt/' + host_os + '-x86_64/bin/make\"'
             return outString
         elif self.targetPlatform == 'openharmony':
             outString = outString + ' -DTARGET_BUILD_PLATFORM=openharmony'
