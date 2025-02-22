@@ -191,7 +191,7 @@ jobs:
       run: |
         cd physx/compiler/android-${{ matrix.config.arch }}-release
         cpu_count=$(nproc)
-        make -j${cpu_count}
+        VERBOSE=1 make -j${cpu_count}
 
     - name: Show Result
       run: |
