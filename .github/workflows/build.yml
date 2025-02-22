@@ -217,3 +217,86 @@ jobs:
       with:
         name: android-${{ matrix.config.arch }}
         path: physx/bin/android.${{ matrix.config.arch }}.fp-soft/release/*.a
+
+
+  build-openharmony:
+    name: "openharmony"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { arch: armeabi-v7a }
+          - { arch: arm64-v8a }
+          - { arch: x86 }
+          - { arch: x86_64 }
+
+    steps:
+    - name: Show CMake Version
+      run: |
+        which cmake
+        cmake --version
+    - name: Get oh sdk cache directory path
+      id: oh-sdk-cache-dir-path
+      run: |
+        echo "cache dir: "
+        echo "dir=$HOME/openharmony" >> $GITHUB_OUTPUT
+
+    - name: Output cache dir
+      run: |
+        echo "Output cache dir: ${{ steps.oh-sdk-cache-dir-path.outputs.dir }}"
+
+    - name: Cache OH SDK
+      id: cache-oh-sdk
+      uses: actions/cache@v4
+      env:
+        cache-name: cache-oh-sdk-13
+      with:
+        path: ${{ steps.oh-sdk-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}
+
+    - name: No Cache found, install oh sdk
+      if: ${{ steps.cache-oh-sdk.outputs.cache-hit != 'true' }}
+      continue-on-error: false
+      run: |
+        if [ ! -d "$HOME/openharmony" ]; then
+        mkdir -p $HOME/openharmony
+        echo "Download commandline-tools-linux-x64-5.0.7.200.zip ..."
+        wget -q https://github.com/dumganhar/oh-sdk-for-ci/releases/download/api-13/commandline-tools-linux-x64-5.0.7.200.zip.001
+        wget -q https://github.com/dumganhar/oh-sdk-for-ci/releases/download/api-13/commandline-tools-linux-x64-5.0.7.200.zip.002
+        echo "Unzip commandline-tools-linux-x64-5.0.7.200.zip ..."
+        7z x commandline-tools-linux-x64-5.0.7.200.zip.001 -o$HOME/openharmony > /dev/null
+        cd $HOME/openharmony
+        ls -l
+        cd commandline-tools-linux-x64-5.0.7.200
+        ls -l
+        fi
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Create Project
+      run: |
+        export PM_OpenHarmonyNDK_PATH=$HOME/openharmony/sdk/default/openharmony/native
+        cd physx
+        ./generate_projects.sh android-${{ matrix.config.arch }}
+  
+    - name: Build
+      run: |
+        cd physx/compiler/android-${{ matrix.config.arch }}-release
+        cpu_count=$(nproc)
+        VERBOSE=1 make -j${cpu_count}
+
+    - name: Show Result
+      run: |
+        cd physx
+        echo "Files in bin/android.${{ matrix.config.arch }}.fp-soft/release: "
+        ls -l bin/android.${{ matrix.config.arch }}.fp-soft/release
+
+    - name: Upload Artifact (.a)
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-${{ matrix.config.arch }}
+        path: physx/bin/android.${{ matrix.config.arch }}.fp-soft/release/*.a

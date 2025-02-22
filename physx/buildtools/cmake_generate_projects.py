@@ -297,7 +297,7 @@ class CMakePreset:
         elif self.targetPlatform == 'openharmony':
             outString = outString + ' -DTARGET_BUILD_PLATFORM=openharmony'
             outString = outString + ' -DCMAKE_TOOLCHAIN_FILE=' + \
-                os.environ['PM_OpenHarmonyNDK_PATH'] + '\\build\\cmake\\ohos.toolchain.cmake'
+                os.environ['PM_OpenHarmonyNDK_PATH'] + '/build/cmake/ohos.toolchain.cmake'
             outString = outString + ' -DCM_ANDROID_FP=\"softfp\"'
             if os.environ.get('PM_OpenHarmonyNDK_PATH') is None:
                 print('Please provide path to OpenHarmony NDK in variable PM_OpenHarmonyNDK_PATH. like  : E:\\work\\harmonyos_data\\ohos_sdk\\native\\3.2.5.5')
@@ -306,7 +306,7 @@ class CMakePreset:
                 outString = outString + ' -DANDROID_NDK=' + \
                     os.environ['PM_OpenHarmonyNDK_PATH']
                 outString = outString + ' -DCMAKE_MAKE_PROGRAM=\"' + \
-                    os.environ['PM_OpenHarmonyNDK_PATH'] + '\\build-tools\\cmake\\bin\\ninja.exe\"'
+                    os.environ['PM_OpenHarmonyNDK_PATH'] + '/build-tools/cmake/bin/ninja.exe\"'
             return outString
         elif self.targetPlatform == 'linux':
             outString = outString + ' -DTARGET_BUILD_PLATFORM=linux'
