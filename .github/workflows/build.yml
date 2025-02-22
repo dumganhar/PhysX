@@ -335,8 +335,9 @@ jobs:
     - name: Build
       shell: bash
       run: |
+        cd physx
         rm -rf bin/win.x86_64.vc142.mt/release
-        cd physx/compiler/vc16win64
+        cd compiler/vc16win64
         cmake --build . --config release
 
     - name: Show Result
