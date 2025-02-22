@@ -30,7 +30,7 @@
 
 STRING(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWERCASE)
 
-SET(PHYSX_WARNING_DISABLES "-Wno-deprecated-copy-with-user-provided-copy -Wno-unused-command-line-argument -Wno-bitwise-instead-of-logical -Wno-invalid-offsetof -Wno-unused-variable -Wno-variadic-macros -Wno-array-bounds -Wno-strict-aliasing")
+SET(PHYSX_WARNING_DISABLES "-Wno-unused-local-typedef -Wno-invalid-noreturn -Wno-unused-private-field -Wno-deprecated-copy-with-user-provided-copy -Wno-unused-command-line-argument -Wno-bitwise-instead-of-logical -Wno-invalid-offsetof -Wno-unused-variable -Wno-variadic-macros -Wno-array-bounds -Wno-strict-aliasing")
 
 IF(OPENHARMONY)
 add_definitions(-D__OPENHARMONY__=1)
