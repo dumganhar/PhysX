@@ -306,7 +306,7 @@ class CMakePreset:
                 outString = outString + ' -DANDROID_NDK=' + \
                     os.environ['PM_OpenHarmonyNDK_PATH']
                 outString = outString + ' -DCMAKE_MAKE_PROGRAM=\"' + \
-                    os.environ['PM_OpenHarmonyNDK_PATH'] + '/build-tools/cmake/bin/ninja.exe\"'
+                    os.environ['PM_OpenHarmonyNDK_PATH'] + '/build-tools/cmake/bin/ninja\"'
             return outString
         elif self.targetPlatform == 'linux':
             outString = outString + ' -DTARGET_BUILD_PLATFORM=linux'
