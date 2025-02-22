@@ -333,11 +333,13 @@ jobs:
         generate_projects.bat vc16win64
 
     - name: Build
+      shell: bash
       run: |
         cd physx/compiler/vc16win64-release
         cmake --build . --config release
 
     - name: Show Result
+      shell: bash
       run: |
         cd physx
         echo "Files in bin/vc16win64/release: "
