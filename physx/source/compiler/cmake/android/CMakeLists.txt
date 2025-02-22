@@ -30,7 +30,7 @@
 
 STRING(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWERCASE)
 
-SET(PHYSX_WARNING_DISABLES "-Wno-invalid-noreturn -Wno-unused-private-field -Wno-ignored-optimization-argument -Wno-invalid-offsetof -Wno-unused-variable -Wno-variadic-macros -Wno-array-bounds -Wno-strict-aliasing")
+SET(PHYSX_WARNING_DISABLES "-Wno-unused-local-typedef -Wno-invalid-noreturn -Wno-unused-private-field -Wno-ignored-optimization-argument -Wno-invalid-offsetof -Wno-unused-variable -Wno-variadic-macros -Wno-array-bounds -Wno-strict-aliasing")
 
 IF(${ANDROID_ABI} STREQUAL "armeabi-v7a")
 	SET(PHYSX_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++11 -fno-rtti -fno-exceptions -ffunction-sections -fdata-sections -funwind-tables -fomit-frame-pointer -funswitch-loops -finline-limit=300 -fno-strict-aliasing -fstack-protector ${PHYSX_WARNING_DISABLES}" CACHE INTERNAL "PhysX CXX")
@@ -48,7 +48,7 @@ ENDIF()
 SET(PHYSX_CXX_FLAGS_DEBUG "-O0 -g" CACHE INTERNAL "PhysX Debug CXX Flags")
 SET(PHYSX_CXX_FLAGS_CHECKED "-O3 -g" CACHE INTERNAL "PhysX Checked CXX Flags")
 SET(PHYSX_CXX_FLAGS_PROFILE "-O3 -g" CACHE INTERNAL "PhysX Profile CXX Flags")
-SET(PHYSX_CXX_FLAGS_RELEASE "-O3" CACHE INTERNAL "PhysX Release CXX Flags")
+SET(PHYSX_CXX_FLAGS_RELEASE "-O3 -g0" CACHE INTERNAL "PhysX Release CXX Flags")
 
 
 # These flags are local to the directory the CMakeLists.txt is in
