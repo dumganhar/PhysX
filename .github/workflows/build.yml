@@ -285,9 +285,10 @@ jobs:
   
     - name: Build
       run: |
+        export PATH=$HOME/openharmony/sdk/default/openharmony/native/build-tools/cmake/bin:$PATH
         cd physx/compiler/openharmony-${{ matrix.config.arch }}-release
         cpu_count=$(nproc)
-        VERBOSE=1 make -j${cpu_count}
+        ninja
 
     - name: Show Result
       run: |
