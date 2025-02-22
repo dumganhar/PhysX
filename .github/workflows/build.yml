@@ -299,3 +299,28 @@ jobs:
       with:
         name: openharmony-${{ matrix.config.arch }}
         path: physx/bin/openharmony.${{ matrix.config.arch }}/release/*.a
+
+  build_windows:
+    name: "windows"
+    runs-on: windows-latest
+    steps:
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        vsversion: 2019
+    
+    - name: Find Visual Studio Installation Path with vswhere
+      id: vswhere
+      run: |
+        $vsPath = &vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+        echo "vsPath=$vsPath" >> $env:GITHUB_ENV
+
+    - name: Find dumpbin.exe Path
+      id: find-dumpbin
+      run: |
+        $dumpbinPath = "$env:vsPath\VC\Tools\MSVC"
+        $dumpbinPath = Get-ChildItem -Path $dumpbinPath -Directory | Sort-Object Name -Descending | Select-Object -First 1 | ForEach-Object { "$($_.FullName)\bin\Hostx64\x64\dumpbin.exe" }
+        if (-not (Test-Path $dumpbinPath)) {
+        throw "dumpbin.exe not found"
+        }
+        echo "dumpbinPath=$dumpbinPath"
+        echo "dumpbinPath=$dumpbinPath" >> $env:GITHUB_ENV
