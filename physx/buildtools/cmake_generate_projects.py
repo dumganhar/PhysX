@@ -343,7 +343,7 @@ class CMakePreset:
             outString = outString + ' -DTARGET_BUILD_PLATFORM=ios'
             outString = outString + ' -DCMAKE_TOOLCHAIN_FILE=\"' + \
                 os.environ['PM_CMakeModules_PATH'] + '/ios/ios.toolchain.cmake\"'
-            outString = outString + ' -DPX_OUTPUT_ARCH=arm'
+            outString = outString + ' -DPX_OUTPUT_ARCH=arm -DIOS_DEPLOYMENT_TARGET=\"11.0\"'
             return outString
         elif self.targetPlatform == 'emscripten':
             outString = outString + '-G \"Ninja\"'
