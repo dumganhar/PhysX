@@ -76,3 +76,9 @@ jobs:
         ls -l bin/ios.arm_64/release
         echo "Show lipo info: "
         ls bin/ios.arm_64/release/*.a | xargs lipo -info
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-${{ matrix.config.sdk }}-${{ matrix.config.arch }}
+        path: physx/bin/ios.arm_64/release/*.a
