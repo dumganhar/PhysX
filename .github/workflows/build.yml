@@ -292,6 +292,7 @@ jobs:
         path: physx/bin/android.${{ matrix.config.arch }}.fp-soft/release/*.a
 
   create-android-package:
+    if: github.event_name == 'release'
     name: "create-android-package"
     runs-on: ubuntu-latest
     permissions:
@@ -422,6 +423,7 @@ jobs:
         path: physx/bin/openharmony.${{ matrix.config.arch }}/release/*.a
 
   create-openharmony-package:
+    if: github.event_name == 'release'
     name: "create-openharmony-package"
     runs-on: ubuntu-latest
     permissions:
