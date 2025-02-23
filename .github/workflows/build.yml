@@ -3,8 +3,8 @@ name: CI
 on:
   push:
   pull_request:
-#   release:
-#     types: [published]
+  release:
+    types: [published]
 
 jobs:
   build-mac:
@@ -33,7 +33,7 @@ jobs:
       run: |
         cd physx/compiler/mac64
         xcodebuild ARCHS="x86_64 arm64" VALID_ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
-    
+
     - name: Show Result
       run: |
         cd physx
@@ -60,6 +60,24 @@ jobs:
       with:
         name: cpp-header
         path: physx/install/mac64/*
+
+    - name: Pack dist files
+      if: github.event_name == 'release'
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        directory: 'physx/bin/mac.universal/release'
+        path: '.'
+        filename: 'physx-${{ github.event.release.tag_name }}-mac.zip'
+
+    - name: Upload to Release
+      if: github.event_name == 'release'
+      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: physx/bin/mac.universal/release/physx-${{ github.event.release.tag_name }}-mac.zip
+        asset_name: physx-${{ github.event.release.tag_name }}-mac.zip
+        tag: ${{ github.ref }}
 
   build-ios:
     name: "iOS"
@@ -94,7 +112,7 @@ jobs:
       run: |
         cd physx/compiler/ios64
         xcodebuild ARCHS="${{ matrix.config.arch }}" VALID_ARCHS="${{ matrix.config.arch }}" ONLY_ACTIVE_ARCH=NO -sdk ${{ matrix.config.sdk }} -scheme install -configuration release build | xcpretty && exit ${PIPESTATUS[0]}
-    
+
     - name: Show Result
       run: |
         cd physx
@@ -102,7 +120,7 @@ jobs:
         ls -l bin/ios.arm_64/release
         echo "Show lipo info: "
         ls bin/ios.arm_64/release/*.a | xargs lipo -info
-    
+
     - name: Check minos Version
       run: |
         echo "Check LC_VERSION_MIN_IPHONEOS ..."
@@ -132,6 +150,12 @@ jobs:
       with:
         name: ios-iphonesimulator-x86_64
         path: artifacts/ios-iphonesimulator-x86_64
+
+    - name: Download iOS Artifacts (ios-iphonesimulator-arm64)
+      uses: actions/download-artifact@v4
+      with:
+        name: ios-iphonesimulator-arm64
+        path: artifacts/ios-iphonesimulator-arm64
 
     - name: Create Fat Library
       run: |
@@ -164,6 +188,29 @@ jobs:
     - uses: geekyeggo/delete-artifact@v5
       with:
         name: ios-iphonesimulator-x86_64
+
+    - name: Remove local ios-iphoneos-arm64 & ios-iphonesimulator-x86_64
+      run: |
+        rm -rf artifacts/ios-iphoneos-arm64
+        rm -rf artifacts/ios-iphonesimulator-x86_64
+
+    - name: Pack dist files
+      if: github.event_name == 'release'
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        directory: 'artifacts'
+        path: '.'
+        filename: 'physx-${{ github.event.release.tag_name }}-ios.zip'
+
+    - name: Upload to Release
+      if: github.event_name == 'release'
+      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: artifacts/physx-${{ github.event.release.tag_name }}-ios.zip
+        asset_name: physx-${{ github.event.release.tag_name }}-ios.zip
+        tag: ${{ github.ref }}
 
   build-android:
     name: "android"
@@ -199,7 +246,7 @@ jobs:
         export PM_AndroidNDK_PATH=${{ steps.setup-ndk.outputs.ndk-path }}
         cd physx
         ./generate_projects.sh android-${{ matrix.config.arch }}
-  
+
     - name: Build
       run: |
         cd physx/compiler/android-${{ matrix.config.arch }}-release
@@ -218,6 +265,52 @@ jobs:
         name: android-${{ matrix.config.arch }}
         path: physx/bin/android.${{ matrix.config.arch }}.fp-soft/release/*.a
 
+  create-android-package:
+    name: "create-android-package"
+    runs-on: ubuntu-latest
+    needs: build-android
+    steps:
+    - name: Download android Artifacts (android-armeabi-v7a)
+      uses: actions/download-artifact@v4
+      with:
+        name: android-armeabi-v7a
+        path: artifacts/armeabi-v7a
+
+    - name: Download android Artifacts (android-arm64-v8a)
+      uses: actions/download-artifact@v4
+      with:
+        name: android-arm64-v8a
+        path: artifacts/arm64-v8a
+
+    - name: Download android Artifacts (android-x86)
+      uses: actions/download-artifact@v4
+      with:
+        name: android-x86
+        path: artifacts/x86
+
+    - name: Download android Artifacts (android-x86_64)
+      uses: actions/download-artifact@v4
+      with:
+        name: android-x86_64
+        path: artifacts/x86_64
+
+    - name: Pack dist files
+      if: github.event_name == 'release'
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        directory: 'artifacts'
+        path: '.'
+        filename: 'physx-${{ github.event.release.tag_name }}-android.zip'
+
+    - name: Upload to Release
+      if: github.event_name == 'release'
+      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: artifacts/physx-${{ github.event.release.tag_name }}-android.zip
+        asset_name: physx-${{ github.event.release.tag_name }}-android.zip
+        tag: ${{ github.ref }}
 
   build-openharmony:
     name: "openharmony"
@@ -281,7 +374,7 @@ jobs:
         export PM_OpenHarmonyNDK_PATH=$HOME/openharmony/commandline-tools-linux-x64-5.0.7.200/sdk/default/openharmony/native
         cd physx
         ./generate_projects.sh openharmony-${{ matrix.config.arch }}
-  
+
     - name: Build
       run: |
         export PATH=$HOME/openharmony/commandline-tools-linux-x64-5.0.7.200/sdk/default/openharmony/native/build-tools/cmake/bin:$PATH
@@ -300,10 +393,57 @@ jobs:
         name: openharmony-${{ matrix.config.arch }}
         path: physx/bin/openharmony.${{ matrix.config.arch }}/release/*.a
 
+  create-openharmony-package:
+    name: "create-openharmony-package"
+    runs-on: ubuntu-latest
+    needs: build-openharmony
+    steps:
+    - name: Download openharmony Artifacts (openharmony-armeabi-v7a)
+      uses: actions/download-artifact@v4
+      with:
+        name: openharmony-armeabi-v7a
+        path: artifacts/armeabi-v7a
+
+    - name: Download openharmony Artifacts (openharmony-arm64-v8a)
+      uses: actions/download-artifact@v4
+      with:
+        name: openharmony-arm64-v8a
+        path: artifacts/arm64-v8a
+
+    - name: Download openharmony Artifacts (openharmony-x86)
+      uses: actions/download-artifact@v4
+      with:
+        name: openharmony-x86
+        path: artifacts/x86
+
+    - name: Download openharmony Artifacts (openharmony-x86_64)
+      uses: actions/download-artifact@v4
+      with:
+        name: openharmony-x86_64
+        path: artifacts/x86_64
+
+    - name: Pack dist files
+      if: github.event_name == 'release'
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        directory: 'artifacts'
+        path: '.'
+        filename: 'physx-${{ github.event.release.tag_name }}-openharmony.zip'
+
+    - name: Upload to Release
+      if: github.event_name == 'release'
+      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: artifacts/physx-${{ github.event.release.tag_name }}-openharmony.zip
+        asset_name: physx-${{ github.event.release.tag_name }}-openharmony.zip
+        tag: ${{ github.ref }}
+
   build_windows:
     name: "windows"
     runs-on: windows-2019
-    steps:   
+    steps:
     - name: Find Visual Studio Installation Path with vswhere
       id: vswhere
       run: |
@@ -325,7 +465,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: recursive
-  
+
     - name: Create Project
       shell: cmd
       run: |
@@ -354,6 +494,24 @@ jobs:
         name: win64
         path: physx/bin/win.x86_64.vc142.mt/release/*.lib
 
+    - name: Pack dist files
+      if: github.event_name == 'release'
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        directory: 'physx/bin/win.x86_64.vc142.mt/release'
+        path: '.'
+        filename: 'physx-${{ github.event.release.tag_name }}-win64.zip'
+
+    - name: Upload to Release
+      if: github.event_name == 'release'
+      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: physx/bin/win.x86_64.vc142.mt/release/physx-${{ github.event.release.tag_name }}-win64.zip
+        asset_name: physx-${{ github.event.release.tag_name }}-win64.zip
+        tag: ${{ github.ref }}
+
   build_emscripten:
     name: emscripten
     runs-on: ubuntu-latest
@@ -362,7 +520,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      
+
       - name: Checkout EMSDK
         uses: actions/checkout@v4
         with:
@@ -395,9 +553,27 @@ jobs:
       - name: Show Result
         run: |
           ls -l builds
-    
+
       - name: Upload Artifact (wasm/asmjs)
         uses: actions/upload-artifact@v4
         with:
           name: emscripten
           path: builds
+
+      - name: Pack dist files
+        if: github.event_name == 'release'
+        uses: thedoctor0/zip-release@main
+        with:
+          type: 'zip'
+          directory: 'builds'
+          path: '.'
+          filename: 'physx-${{ github.event.release.tag_name }}-emscripten.zip'
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: builds/physx-${{ github.event.release.tag_name }}-emscripten.zip
+          asset_name: physx-${{ github.event.release.tag_name }}-emscripten.zip
+          tag: ${{ github.ref }}
