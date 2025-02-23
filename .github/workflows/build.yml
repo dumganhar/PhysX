@@ -488,7 +488,7 @@ jobs:
         cd physx
         rm -rf bin/win.x86_64.vc142.md/release
         cd compiler/vc16win64
-        cmake --install . --config release
+        cmake --build . --target install --config release
 
     - name: Show Result
       shell: bash
@@ -508,7 +508,6 @@ jobs:
       shell: bash
       run: |
         ls -l physx/install
-        tree .
 
     - name: Upload Artifact (.h)
       uses: actions/upload-artifact@v4
