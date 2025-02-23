@@ -504,6 +504,12 @@ jobs:
         name: win64
         path: physx/bin/win.x86_64.vc142.md/release/*.lib
 
+    - name: Show install directory
+      shell: bash
+      run: |
+        ls -l physx/install
+        tree .
+
     - name: Upload Artifact (.h)
       uses: actions/upload-artifact@v4
       with:
