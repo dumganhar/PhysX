@@ -64,7 +64,7 @@ jobs:
     - name: Upload Artifact (.h)
       uses: actions/upload-artifact@v4
       with:
-        name: cpp-header
+        name: cpp-header-unix
         path: physx/install/mac64/*
 
     - name: Pack dist files (.a)
@@ -83,24 +83,6 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: physx/bin/mac.universal/release/physx-${{ github.event.release.tag_name }}-mac.zip
         asset_name: physx-${{ github.event.release.tag_name }}-mac.zip
-        tag: ${{ github.ref }}
-
-    - name: Pack dist files (.h)
-      if: github.event_name == 'release'
-      uses: thedoctor0/zip-release@main
-      with:
-        type: 'zip'
-        directory: 'physx/install/mac64'
-        path: '.'
-        filename: 'physx-${{ github.event.release.tag_name }}-header.zip'
-
-    - name: Upload to Release (.h)
-      if: github.event_name == 'release'
-      uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: physx/install/mac64/physx-${{ github.event.release.tag_name }}-header.zip
-        asset_name: physx-${{ github.event.release.tag_name }}-header.zip
         tag: ${{ github.ref }}
 
   build-ios:
@@ -466,7 +448,7 @@ jobs:
         asset_name: physx-${{ github.event.release.tag_name }}-openharmony.zip
         tag: ${{ github.ref }}
 
-  build_windows:
+  build-windows:
     name: "windows"
     runs-on: windows-2019
     permissions:
@@ -522,6 +504,12 @@ jobs:
         name: win64
         path: physx/bin/win.x86_64.vc142.mt/release/*.lib
 
+    - name: Upload Artifact (.h)
+      uses: actions/upload-artifact@v4
+      with:
+        name: cpp-header-windows
+        path: physx/install/vc16win64/*
+
     - name: Pack dist files
       if: github.event_name == 'release'
       uses: thedoctor0/zip-release@main
@@ -541,7 +529,56 @@ jobs:
         asset_name: physx-${{ github.event.release.tag_name }}-win64.zip
         tag: ${{ github.ref }}
 
-  build_emscripten:
+  create-header:
+    name: create-header
+    runs-on: ubuntu-latest
+    needs: [build-mac, build-windows]
+    permissions:
+      contents: write
+    steps:
+    - name: Download cpp-header Artifacts (unix)
+      uses: actions/download-artifact@v4
+      with:
+        name: cpp-header-unix
+        path: artifacts/cpp-header-unix
+
+    - name: Download cpp-header Artifacts (windows)
+      uses: actions/download-artifact@v4
+      with:
+        name: cpp-header-windows
+        path: artifacts/cpp-header-windows
+
+    - name: Merge Headers
+      run: |
+        mkdir -p artifacts/merged-headers
+        cp -r artifacts/cpp-header-unix/* artifacts/merged-headers/
+        cp -r artifacts/cpp-header-windows/* artifacts/merged-headers/
+
+    - name: Upload Merged Headers Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: cpp-headers
+        path: artifacts/merged-headers
+
+    - name: Pack dist files (.h)
+      if: github.event_name == 'release'
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        directory: 'artifacts/merged-headers'
+        path: '.'
+        filename: 'physx-${{ github.event.release.tag_name }}-header.zip'
+
+    - name: Upload to Release (.h)
+      if: github.event_name == 'release'
+      uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: artifacts/merged-headers/physx-${{ github.event.release.tag_name }}-header.zip
+        asset_name: physx-${{ github.event.release.tag_name }}-header.zip
+        tag: ${{ github.ref }}
+
+  build-emscripten:
     name: emscripten
     runs-on: ubuntu-latest
     permissions:
