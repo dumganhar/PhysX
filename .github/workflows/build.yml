@@ -78,7 +78,7 @@ jobs:
 
     - name: Upload to Release (.a)
       if: github.event_name == 'release'
-      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: physx/bin/mac.universal/release/physx-${{ github.event.release.tag_name }}-mac.zip
@@ -96,7 +96,7 @@ jobs:
 
     - name: Upload to Release (.h)
       if: github.event_name == 'release'
-      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: physx/install/mac64/physx-${{ github.event.release.tag_name }}-header.zip
@@ -231,7 +231,7 @@ jobs:
 
     - name: Upload to Release
       if: github.event_name == 'release'
-      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: artifacts/physx-${{ github.event.release.tag_name }}-ios.zip
@@ -334,7 +334,7 @@ jobs:
 
     - name: Upload to Release
       if: github.event_name == 'release'
-      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: artifacts/physx-${{ github.event.release.tag_name }}-android.zip
@@ -459,7 +459,7 @@ jobs:
 
     - name: Upload to Release
       if: github.event_name == 'release'
-      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: artifacts/physx-${{ github.event.release.tag_name }}-openharmony.zip
@@ -534,7 +534,7 @@ jobs:
 
     - name: Upload to Release
       if: github.event_name == 'release'
-      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: physx/bin/win.x86_64.vc142.mt/release/physx-${{ github.event.release.tag_name }}-win64.zip
@@ -602,7 +602,7 @@ jobs:
 
       - name: Upload to Release
         if: github.event_name == 'release'
-        uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+        uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: builds/physx-${{ github.event.release.tag_name }}-emscripten.zip
