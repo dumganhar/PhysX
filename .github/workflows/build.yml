@@ -2,6 +2,10 @@ name: CI
 
 on:
   push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
   pull_request:
   release:
     types: [published]
@@ -10,6 +14,8 @@ jobs:
   build-mac:
     name: "macOS"
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
     - name: Show CMake Version
       run: |
@@ -61,7 +67,7 @@ jobs:
         name: cpp-header
         path: physx/install/mac64/*
 
-    - name: Pack dist files
+    - name: Pack dist files (.a)
       if: github.event_name == 'release'
       uses: thedoctor0/zip-release@main
       with:
@@ -70,13 +76,31 @@ jobs:
         path: '.'
         filename: 'physx-${{ github.event.release.tag_name }}-mac.zip'
 
-    - name: Upload to Release
+    - name: Upload to Release (.a)
       if: github.event_name == 'release'
       uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: physx/bin/mac.universal/release/physx-${{ github.event.release.tag_name }}-mac.zip
         asset_name: physx-${{ github.event.release.tag_name }}-mac.zip
+        tag: ${{ github.ref }}
+
+    - name: Pack dist files (.h)
+      if: github.event_name == 'release'
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        directory: 'physx/install/mac64'
+        path: '.'
+        filename: 'physx-${{ github.event.release.tag_name }}-header.zip'
+
+    - name: Upload to Release (.h)
+      if: github.event_name == 'release'
+      uses: svenstaro/upload-release-action@e74ff71f7d8a4c4745b560a485cc5fdb9b5b999d
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: physx/install/mac64/physx-${{ github.event.release.tag_name }}-header.zip
+        asset_name: physx-${{ github.event.release.tag_name }}-header.zip
         tag: ${{ github.ref }}
 
   build-ios:
@@ -137,6 +161,8 @@ jobs:
   create-fat-library:
     name: "Create iOS Fat Library"
     runs-on: macos-latest
+    permissions:
+      contents: write
     needs: build-ios
     steps:
     - name: Download iOS Artifacts (ios-iphoneos-arm64)
@@ -268,6 +294,8 @@ jobs:
   create-android-package:
     name: "create-android-package"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: build-android
     steps:
     - name: Download android Artifacts (android-armeabi-v7a)
@@ -396,6 +424,8 @@ jobs:
   create-openharmony-package:
     name: "create-openharmony-package"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: build-openharmony
     steps:
     - name: Download openharmony Artifacts (openharmony-armeabi-v7a)
@@ -409,12 +439,6 @@ jobs:
       with:
         name: openharmony-arm64-v8a
         path: artifacts/arm64-v8a
-
-    - name: Download openharmony Artifacts (openharmony-x86)
-      uses: actions/download-artifact@v4
-      with:
-        name: openharmony-x86
-        path: artifacts/x86
 
     - name: Download openharmony Artifacts (openharmony-x86_64)
       uses: actions/download-artifact@v4
@@ -443,6 +467,8 @@ jobs:
   build_windows:
     name: "windows"
     runs-on: windows-2019
+    permissions:
+      contents: write
     steps:
     - name: Find Visual Studio Installation Path with vswhere
       id: vswhere
@@ -502,6 +528,7 @@ jobs:
         directory: 'physx/bin/win.x86_64.vc142.mt/release'
         path: '.'
         filename: 'physx-${{ github.event.release.tag_name }}-win64.zip'
+        exclusions: '*.pdb'
 
     - name: Upload to Release
       if: github.event_name == 'release'
@@ -515,6 +542,8 @@ jobs:
   build_emscripten:
     name: emscripten
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
