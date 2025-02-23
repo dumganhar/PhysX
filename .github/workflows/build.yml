@@ -504,10 +504,10 @@ jobs:
         name: win64
         path: physx/bin/win.x86_64.vc142.md/release/*.lib
 
-    - name: Show install directory
+    - name: Remove physx/install/PhysX/bin
       shell: bash
       run: |
-        ls -l physx/install
+        rm -rf physx/install/PhysX/bin
 
     - name: Upload Artifact (.h)
       uses: actions/upload-artifact@v4
