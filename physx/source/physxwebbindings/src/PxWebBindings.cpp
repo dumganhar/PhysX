@@ -8,18 +8,80 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <type_traits>
 #include "PxWebBindings.h"
+
+#define __LIB_VERSION__ 100
 
 using namespace physx;
 using namespace emscripten;
 
-#define __LIB_VERSION__ 100
+#define DEFINE_ALLOW_RAW_POINTER(type) \
+namespace emscripten { namespace internal { \
+    template<> \
+    struct TypeID<type*> { \
+        static constexpr TYPEID get() { \
+            return TypeID<type>::get(); \
+        } \
+    }; \
+    template<> \
+    struct TypeID<const type*> { \
+        static constexpr TYPEID get() { \
+            return TypeID<type>::get(); \
+        } \
+    }; \
+}}
+
+DEFINE_ALLOW_RAW_POINTER(PxRaycastHit)
+DEFINE_ALLOW_RAW_POINTER(PxSweepHit)
+DEFINE_ALLOW_RAW_POINTER(PxFilterData)
+DEFINE_ALLOW_RAW_POINTER(PxQueryHit)
+DEFINE_ALLOW_RAW_POINTER(PxControllerShapeHit)
+DEFINE_ALLOW_RAW_POINTER(PxControllersHit)
+DEFINE_ALLOW_RAW_POINTER(PxControllerObstacleHit)
+// DEFINE_ALLOW_RAW_POINTER(PxExtendedVec3)
+DEFINE_ALLOW_RAW_POINTER(std::vector<PxContactPairPoint>)
+
+template <typename T>
+void registerPhysxInteger(const char* name) {
+    using namespace emscripten::internal;
+    using UnderlyingType = typename T::InternalType;
+    _embind_register_integer(TypeID<T>::get(), name, sizeof(T), std::numeric_limits<UnderlyingType>::min(),
+    std::numeric_limits<UnderlyingType>::max());
+}
+
+#define MARK_PHYSX_ENUM(name) \
+namespace std { \
+template <> \
+struct is_enum<physx::name> { \
+  static constexpr bool value = true; \
+}; \
+} \
+namespace emscripten { namespace internal { \
+  template <> \
+  struct EnumBindingType<name> { \
+      using WireType = physx::name::InternalType; \
+      static WireType toWireType(physx::name v) { \
+          return uint32_t(v); \
+      } \
+      static physx::name fromWireType(WireType v) { \
+          return physx::name(v); \
+      } \
+  }; \
+}}
+
+MARK_PHYSX_ENUM(PxQueryFlags)
+MARK_PHYSX_ENUM(PxHitFlags)
+MARK_PHYSX_ENUM(PxShapeFlags)
+
+#define REGISTER_PHYSX_ENUM(name) \
+    registerPhysxInteger<physx::name>("physx::" #name)
 
 struct PxRaycastCallbackWrapper : public wrapper<PxRaycastCallback> {
   EMSCRIPTEN_WRAPPER(PxRaycastCallbackWrapper)
   PxAgain processTouches(const PxRaycastHit *buffer, PxU32 nbHits) {
     for (PxU32 i = 0; i < nbHits; i++) {
-      bool again = call<PxAgain>("processTouches", buffer[i]);
+      bool again = call<PxAgain>("processTouches", &buffer[i]);
       if (!again) {
         return false;
       }
@@ -37,7 +99,7 @@ struct PxSweepCallbackWrapper : public wrapper<PxSweepCallback> {
   EMSCRIPTEN_WRAPPER(PxSweepCallbackWrapper)
   PxAgain processTouches(const PxSweepHit *buffer, PxU32 nbHits) {
     for (PxU32 i = 0; i < nbHits; i++) {
-      bool again = call<PxAgain>("processTouches", buffer[i]);
+      bool again = call<PxAgain>("processTouches", &buffer[i]);
       if (!again) {
         return false;
       }
@@ -55,7 +117,7 @@ struct PxQueryFilterCallbackWrapper : public wrapper<PxQueryFilterCallback> {
   EMSCRIPTEN_WRAPPER(PxQueryFilterCallbackWrapper)
   PxQueryHitType::Enum postFilter(const PxFilterData &filterData,
                                   const PxQueryHit &hit) {
-    return call<PxQueryHitType::Enum>("postFilter", filterData, hit);
+    return call<PxQueryHitType::Enum>("postFilter", &filterData, &hit);
   }
   PxQueryHitType::Enum preFilter(const PxFilterData &filterData,
                                  const PxShape *shape,
@@ -67,7 +129,7 @@ struct PxQueryFilterCallbackWrapper : public wrapper<PxQueryFilterCallback> {
     //   return PxQueryHitType::eNONE;
     // }
     PxQueryHitType::Enum hitType =
-        call<PxQueryHitType::Enum>("preFilter", filterData, shape, actor, out);
+        call<PxQueryHitType::Enum>("preFilter", &filterData, shape, actor/*, &out */);
     return hitType;
   }
 };
@@ -106,13 +168,13 @@ struct PxSimulationEventCallbackWrapper
 
       if (cp.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS) {
         call<void>("onContactPersist", cp.shapes[0], cp.shapes[1], contactCount,
-                   gContactPoints, offset);
+                   &gContactPoints, offset);
       } else if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND) {
         call<void>("onContactBegin", cp.shapes[0], cp.shapes[1], contactCount,
-                   gContactPoints, offset);
+                   &gContactPoints, offset);
       } else if (cp.events & PxPairFlag::eNOTIFY_TOUCH_LOST) {
         call<void>("onContactEnd", cp.shapes[0], cp.shapes[1], contactCount,
-                   gContactPoints, offset);
+                   &gContactPoints, offset);
       }
     }
   }
@@ -322,13 +384,13 @@ struct PxUserControllerHitReportWrapper
     : public wrapper<PxUserControllerHitReport> {
   EMSCRIPTEN_WRAPPER(PxUserControllerHitReportWrapper)
   void onShapeHit(const PxControllerShapeHit &hit) {
-    return call<void>("onShapeHit", hit);
+    return call<void>("onShapeHit", &hit);
   }
   void onControllerHit(const PxControllersHit &hit) {
-    return call<void>("onControllerHit", hit);
+    return call<void>("onControllerHit", &hit);
   }
   void onObstacleHit(const PxControllerObstacleHit &hit) {
-    return call<void>("onObstacleHit", hit);
+    return call<void>("onObstacleHit", &hit);
   }
 };
 
@@ -337,27 +399,27 @@ static uint32_t PxRenderBuffer_GetNbLines(uint32_t ptr) {
   return ((PxRenderBuffer *)ptr)->getNbLines();
 }
 static uint32_t PxRenderBuffer_GetLineAt(uint32_t ptr, uint32_t id) {
-  return (uint32_t )&(((PxRenderBuffer *)ptr)->getLines()[id]);
+  return (uintptr_t)&(((PxRenderBuffer *)ptr)->getLines()[id]);
 }
 static uint32_t PxRenderBuffer_GetNbPoints(uint32_t ptr) {
   return ((PxRenderBuffer *)ptr)->getNbPoints();
 }
 static uint32_t PxRenderBuffer_GetPointAt(uint32_t ptr, uint32_t id) {
-  return (uint32_t )&(((PxRenderBuffer *)ptr)->getPoints()[id]);
+  return (uintptr_t )&(((PxRenderBuffer *)ptr)->getPoints()[id]);
 }
 static uint32_t PxRenderBuffer_GetNbTriangles(uint32_t ptr) {
   return ((PxRenderBuffer *)ptr)->getNbTriangles();
 }
 static uint32_t PxRenderBuffer_GetTriangleAt(uint32_t ptr, uint32_t id) {
-  return (uint32_t )&(((PxRenderBuffer *)ptr)->getTriangles()[id]);
+  return (uintptr_t )&(((PxRenderBuffer *)ptr)->getTriangles()[id]);
 }
 
 // PxDebugLine
 static uint32_t PxDebugLine_GetPos0(uint32_t ptr) {
-  return (uint32_t)&(((PxDebugLine *)ptr)->pos0);
+  return (uintptr_t)&(((PxDebugLine *)ptr)->pos0);
 }
 static uint32_t PxDebugLine_GetPos1(uint32_t ptr) {
-  return (uint32_t)&(((PxDebugLine *)ptr)->pos1);
+  return (uintptr_t)&(((PxDebugLine *)ptr)->pos1);
 }
 static uint32_t PxDebugLine_GetColor0(uint32_t ptr) {
   return ((PxDebugLine *)ptr)->color0;
@@ -369,6 +431,9 @@ static uint32_t PxDebugLine_GetColor1(uint32_t ptr) {
 //----------------------------------------------------------------------------
 
 EMSCRIPTEN_BINDINGS(physx) {
+  REGISTER_PHYSX_ENUM(PxQueryFlags);
+  REGISTER_PHYSX_ENUM(PxHitFlags);
+  REGISTER_PHYSX_ENUM(PxShapeFlags);
 
   constant("PX_PHYSICS_VERSION", PX_PHYSICS_VERSION);
   constant("LIB_VERSION", __LIB_VERSION__);
@@ -902,11 +967,11 @@ EMSCRIPTEN_BINDINGS(physx) {
   function("allocateSweepHitBuffers", &allocateSweepHitBuffers,
            allow_raw_pointers());
 
-  class_<PxHitFlags>("PxHitFlags").constructor<int>();
-  enum_<PxHitFlag::Enum>("PxHitFlag")
-      .value("eDEFAULT", PxHitFlag::Enum::eDEFAULT)
-      .value("eMESH_BOTH_SIDES", PxHitFlag::Enum::eMESH_BOTH_SIDES)
-      .value("eMESH_MULTIPLE", PxHitFlag::Enum::eMESH_MULTIPLE);
+  // class_<PxHitFlags>("PxHitFlags").constructor<int>();
+  // enum_<PxHitFlag::Enum>("PxHitFlag")
+  //     .value("eDEFAULT", PxHitFlag::Enum::eDEFAULT)
+  //     .value("eMESH_BOTH_SIDES", PxHitFlag::Enum::eMESH_BOTH_SIDES)
+  //     .value("eMESH_MULTIPLE", PxHitFlag::Enum::eMESH_MULTIPLE);
 
   class_<PxQueryFilterData>("PxQueryFilterData")
       .constructor<>()
@@ -926,14 +991,14 @@ EMSCRIPTEN_BINDINGS(physx) {
                     qf.data.word3 = f;
                 }))
       .property("data", &PxQueryFilterData::data);
-  class_<PxQueryFlags>("PxQueryFlags").constructor<int>();
-  enum_<PxQueryFlag::Enum>("PxQueryFlag")
-      .value("eANY_HIT", PxQueryFlag::Enum::eANY_HIT)
-      .value("eDYNAMIC", PxQueryFlag::Enum::eDYNAMIC)
-      .value("eSTATIC", PxQueryFlag::Enum::eSTATIC)
-      .value("ePREFILTER", PxQueryFlag::Enum::ePREFILTER)
-      .value("ePOSTFILTER", PxQueryFlag::Enum::ePOSTFILTER)
-      .value("eNO_BLOCK", PxQueryFlag::Enum::eNO_BLOCK);
+  // class_<PxQueryFlags>("PxQueryFlags").constructor<int>();
+  // enum_<PxQueryFlag::Enum>("PxQueryFlag")
+  //     .value("eANY_HIT", PxQueryFlag::Enum::eANY_HIT)
+  //     .value("eDYNAMIC", PxQueryFlag::Enum::eDYNAMIC)
+  //     .value("eSTATIC", PxQueryFlag::Enum::eSTATIC)
+  //     .value("ePREFILTER", PxQueryFlag::Enum::ePREFILTER)
+  //     .value("ePOSTFILTER", PxQueryFlag::Enum::ePOSTFILTER)
+  //     .value("eNO_BLOCK", PxQueryFlag::Enum::eNO_BLOCK);
   enum_<PxQueryHitType::Enum>("PxQueryHitType")
       .value("eNONE", PxQueryHitType::Enum::eNONE)
       .value("eBLOCK", PxQueryHitType::Enum::eBLOCK)
@@ -979,7 +1044,7 @@ EMSCRIPTEN_BINDINGS(physx) {
                 allow_raw_pointers())
       .function("setSimulationFilterData", &PxShape::setSimulationFilterData,
                 allow_raw_pointers())
-      .function("setSimulationFilterData", &PxShape::getSimulationFilterData,
+      .function("getSimulationFilterData", &PxShape::getSimulationFilterData,
                 allow_raw_pointers())
       .function("setQueryFilterData", &PxShape::setQueryFilterData)
       .function("getQueryFilterData", &PxShape::getQueryFilterData,
@@ -1012,14 +1077,14 @@ EMSCRIPTEN_BINDINGS(physx) {
       .function("createRigidStatic", &PxPhysics::createRigidStatic,
                 allow_raw_pointers());
 
-  class_<PxShapeFlags>("PxShapeFlags")
-      .constructor<int>()
-      .function("isSet", &PxShapeFlags::isSet);
-  enum_<PxShapeFlag::Enum>("PxShapeFlag")
-      .value("eSIMULATION_SHAPE", PxShapeFlag::Enum::eSIMULATION_SHAPE)
-      .value("eSCENE_QUERY_SHAPE", PxShapeFlag::Enum::eSCENE_QUERY_SHAPE)
-      .value("eTRIGGER_SHAPE", PxShapeFlag::Enum::eTRIGGER_SHAPE)
-      .value("eVISUALIZATION", PxShapeFlag::Enum::eVISUALIZATION);
+  // class_<PxShapeFlags>("PxShapeFlags")
+  //     .constructor<int>()
+  //     .function("isSet", &PxShapeFlags::isSet);
+  // enum_<PxShapeFlag::Enum>("PxShapeFlag")
+  //     .value("eSIMULATION_SHAPE", PxShapeFlag::Enum::eSIMULATION_SHAPE)
+  //     .value("eSCENE_QUERY_SHAPE", PxShapeFlag::Enum::eSCENE_QUERY_SHAPE)
+  //     .value("eTRIGGER_SHAPE", PxShapeFlag::Enum::eTRIGGER_SHAPE)
+  //     .value("eVISUALIZATION", PxShapeFlag::Enum::eVISUALIZATION);
 
   enum_<PxActorFlag::Enum>("PxActorFlag")
       .value("eVISUALIZATION", PxActorFlag::Enum::eVISUALIZATION)
