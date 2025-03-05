@@ -70,9 +70,9 @@ namespace emscripten { namespace internal { \
   }; \
 }}
 
-MARK_PHYSX_ENUM(PxQueryFlags)
-MARK_PHYSX_ENUM(PxHitFlags)
-MARK_PHYSX_ENUM(PxShapeFlags)
+// MARK_PHYSX_ENUM(PxQueryFlags)
+// MARK_PHYSX_ENUM(PxHitFlags)
+// MARK_PHYSX_ENUM(PxShapeFlags)
 
 #define REGISTER_PHYSX_ENUM(name) \
     registerPhysxInteger<physx::name>("physx::" #name)
@@ -431,9 +431,6 @@ static uint32_t PxDebugLine_GetColor1(uint32_t ptr) {
 //----------------------------------------------------------------------------
 
 EMSCRIPTEN_BINDINGS(physx) {
-  REGISTER_PHYSX_ENUM(PxQueryFlags);
-  REGISTER_PHYSX_ENUM(PxHitFlags);
-  REGISTER_PHYSX_ENUM(PxShapeFlags);
 
   constant("PX_PHYSICS_VERSION", PX_PHYSICS_VERSION);
   constant("LIB_VERSION", __LIB_VERSION__);
@@ -967,11 +964,11 @@ EMSCRIPTEN_BINDINGS(physx) {
   function("allocateSweepHitBuffers", &allocateSweepHitBuffers,
            allow_raw_pointers());
 
-  // class_<PxHitFlags>("PxHitFlags").constructor<int>();
-  // enum_<PxHitFlag::Enum>("PxHitFlag")
-  //     .value("eDEFAULT", PxHitFlag::Enum::eDEFAULT)
-  //     .value("eMESH_BOTH_SIDES", PxHitFlag::Enum::eMESH_BOTH_SIDES)
-  //     .value("eMESH_MULTIPLE", PxHitFlag::Enum::eMESH_MULTIPLE);
+  class_<PxHitFlags>("PxHitFlags").constructor<int>();
+  enum_<PxHitFlag::Enum>("PxHitFlag")
+      .value("eDEFAULT", PxHitFlag::Enum::eDEFAULT)
+      .value("eMESH_BOTH_SIDES", PxHitFlag::Enum::eMESH_BOTH_SIDES)
+      .value("eMESH_MULTIPLE", PxHitFlag::Enum::eMESH_MULTIPLE);
 
   class_<PxQueryFilterData>("PxQueryFilterData")
       .constructor<>()
@@ -991,14 +988,14 @@ EMSCRIPTEN_BINDINGS(physx) {
                     qf.data.word3 = f;
                 }))
       .property("data", &PxQueryFilterData::data);
-  // class_<PxQueryFlags>("PxQueryFlags").constructor<int>();
-  // enum_<PxQueryFlag::Enum>("PxQueryFlag")
-  //     .value("eANY_HIT", PxQueryFlag::Enum::eANY_HIT)
-  //     .value("eDYNAMIC", PxQueryFlag::Enum::eDYNAMIC)
-  //     .value("eSTATIC", PxQueryFlag::Enum::eSTATIC)
-  //     .value("ePREFILTER", PxQueryFlag::Enum::ePREFILTER)
-  //     .value("ePOSTFILTER", PxQueryFlag::Enum::ePOSTFILTER)
-  //     .value("eNO_BLOCK", PxQueryFlag::Enum::eNO_BLOCK);
+  class_<PxQueryFlags>("PxQueryFlags").constructor<int>();
+  enum_<PxQueryFlag::Enum>("PxQueryFlag")
+      .value("eANY_HIT", PxQueryFlag::Enum::eANY_HIT)
+      .value("eDYNAMIC", PxQueryFlag::Enum::eDYNAMIC)
+      .value("eSTATIC", PxQueryFlag::Enum::eSTATIC)
+      .value("ePREFILTER", PxQueryFlag::Enum::ePREFILTER)
+      .value("ePOSTFILTER", PxQueryFlag::Enum::ePOSTFILTER)
+      .value("eNO_BLOCK", PxQueryFlag::Enum::eNO_BLOCK);
   enum_<PxQueryHitType::Enum>("PxQueryHitType")
       .value("eNONE", PxQueryHitType::Enum::eNONE)
       .value("eBLOCK", PxQueryHitType::Enum::eBLOCK)
@@ -1077,14 +1074,14 @@ EMSCRIPTEN_BINDINGS(physx) {
       .function("createRigidStatic", &PxPhysics::createRigidStatic,
                 allow_raw_pointers());
 
-  // class_<PxShapeFlags>("PxShapeFlags")
-  //     .constructor<int>()
-  //     .function("isSet", &PxShapeFlags::isSet);
-  // enum_<PxShapeFlag::Enum>("PxShapeFlag")
-  //     .value("eSIMULATION_SHAPE", PxShapeFlag::Enum::eSIMULATION_SHAPE)
-  //     .value("eSCENE_QUERY_SHAPE", PxShapeFlag::Enum::eSCENE_QUERY_SHAPE)
-  //     .value("eTRIGGER_SHAPE", PxShapeFlag::Enum::eTRIGGER_SHAPE)
-  //     .value("eVISUALIZATION", PxShapeFlag::Enum::eVISUALIZATION);
+  class_<PxShapeFlags>("PxShapeFlags")
+      .constructor<int>()
+      .function("isSet", &PxShapeFlags::isSet);
+  enum_<PxShapeFlag::Enum>("PxShapeFlag")
+      .value("eSIMULATION_SHAPE", PxShapeFlag::Enum::eSIMULATION_SHAPE)
+      .value("eSCENE_QUERY_SHAPE", PxShapeFlag::Enum::eSCENE_QUERY_SHAPE)
+      .value("eTRIGGER_SHAPE", PxShapeFlag::Enum::eTRIGGER_SHAPE)
+      .value("eVISUALIZATION", PxShapeFlag::Enum::eVISUALIZATION);
 
   enum_<PxActorFlag::Enum>("PxActorFlag")
       .value("eVISUALIZATION", PxActorFlag::Enum::eVISUALIZATION)
