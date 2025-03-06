@@ -1,14 +1,16 @@
 #include "PxPhysicsAPI.h"
-#include <chrono>
+#include "PxSimulationEventCallback.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
 #include <ctime>
 #include <emscripten.h>
 #include <emscripten/bind.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <type_traits>
 #include "PxWebBindings.h"
 
 #define __LIB_VERSION__ 100
@@ -39,8 +41,8 @@ DEFINE_ALLOW_RAW_POINTER(PxQueryHit)
 DEFINE_ALLOW_RAW_POINTER(PxControllerShapeHit)
 DEFINE_ALLOW_RAW_POINTER(PxControllersHit)
 DEFINE_ALLOW_RAW_POINTER(PxControllerObstacleHit)
-// DEFINE_ALLOW_RAW_POINTER(PxExtendedVec3)
-DEFINE_ALLOW_RAW_POINTER(std::vector<PxContactPairPoint>)
+DEFINE_ALLOW_RAW_POINTER(PxContactPairPoint)
+DEFINE_ALLOW_RAW_POINTER(std::vector<PxContactPairPoint*>)
 
 template <typename T>
 void registerPhysxInteger(const char* name) {
@@ -81,7 +83,7 @@ struct PxRaycastCallbackWrapper : public wrapper<PxRaycastCallback> {
   EMSCRIPTEN_WRAPPER(PxRaycastCallbackWrapper)
   PxAgain processTouches(const PxRaycastHit *buffer, PxU32 nbHits) {
     for (PxU32 i = 0; i < nbHits; i++) {
-      bool again = call<PxAgain>("processTouches", &buffer[i]);
+      bool again = call<PxAgain>("processTouches", buffer[i]);
       if (!again) {
         return false;
       }
@@ -99,7 +101,7 @@ struct PxSweepCallbackWrapper : public wrapper<PxSweepCallback> {
   EMSCRIPTEN_WRAPPER(PxSweepCallbackWrapper)
   PxAgain processTouches(const PxSweepHit *buffer, PxU32 nbHits) {
     for (PxU32 i = 0; i < nbHits; i++) {
-      bool again = call<PxAgain>("processTouches", &buffer[i]);
+      bool again = call<PxAgain>("processTouches", buffer[i]);
       if (!again) {
         return false;
       }
@@ -117,7 +119,7 @@ struct PxQueryFilterCallbackWrapper : public wrapper<PxQueryFilterCallback> {
   EMSCRIPTEN_WRAPPER(PxQueryFilterCallbackWrapper)
   PxQueryHitType::Enum postFilter(const PxFilterData &filterData,
                                   const PxQueryHit &hit) {
-    return call<PxQueryHitType::Enum>("postFilter", &filterData, &hit);
+    return call<PxQueryHitType::Enum>("postFilter", filterData, &hit);
   }
   PxQueryHitType::Enum preFilter(const PxFilterData &filterData,
                                  const PxShape *shape,
@@ -128,15 +130,63 @@ struct PxQueryFilterCallbackWrapper : public wrapper<PxQueryFilterCallback> {
     // {
     //   return PxQueryHitType::eNONE;
     // }
-    PxQueryHitType::Enum hitType =
-        call<PxQueryHitType::Enum>("preFilter", &filterData, shape, actor/*, &out */);
+    PxQueryHitType::Enum hitType = call<PxQueryHitType::Enum>("preFilter", filterData, shape, actor/*, &out */);
     return hitType;
   }
 };
 
-bool gContactPointsNeedClear = false;
-std::vector<PxContactPairPoint> gContactPoints;
-std::vector<PxContactPairPoint> getGContacts() { return gContactPoints; }
+template<typename T>
+class ObjectPool {
+public:
+  ObjectPool(size_t initialSize, size_t maxSize)
+    : _maxSize(maxSize) {
+    _freeObjPool.resize(initialSize);
+    for (uint32_t i = 0; i < initialSize; i++) {
+      _freeObjPool[i] = new T();
+    }
+  }
+  ~ObjectPool() {
+    for (T* obj : _freeObjPool) {
+      delete obj;
+    }
+  }
+  T* get() {
+    if (_freeObjPool.empty()) {
+      return new T();
+    }
+    
+    T* obj = _freeObjPool.back();
+    _freeObjPool.pop_back();
+    return obj;
+  }
+
+  void returnObj(T* obj) {
+    if (_freeObjPool.size() >= _maxSize) {
+      delete obj;
+      return;
+    }
+
+    _freeObjPool.emplace_back(obj);
+  }
+
+private:
+  std::vector<T*> _freeObjPool;
+  const size_t _maxSize;
+};
+
+// The global object pool for PxContactPairPoint
+static ObjectPool<PxContactPairPoint> gContactPairPointPool(32, 256);
+
+// The flag to indicate whether the global contact points need to be cleared.
+static bool gContactPointsNeedClear = false;
+// The global contact points passed to Javascript
+static std::vector<PxContactPairPoint*> gContactPoints;
+// Use a global vector to store the temporary contact points used for 'extractContacts'.
+static std::vector<PxContactPairPoint> gContactTemp;
+
+static std::vector<PxContactPairPoint*>* getGContacts() { 
+  return &gContactPoints;
+}
 struct PxSimulationEventCallbackWrapper
     : public wrapper<PxSimulationEventCallback> {
   EMSCRIPTEN_WRAPPER(PxSimulationEventCallbackWrapper)
@@ -146,35 +196,52 @@ struct PxSimulationEventCallbackWrapper
   void onContact(const PxContactPairHeader &, const PxContactPair *pairs,
                  PxU32 nbPairs) {
     if (gContactPointsNeedClear) {
+      for (auto* point : gContactPoints) {
+        gContactPairPointPool.returnObj(point);
+      }
       gContactPoints.clear();
       gContactPointsNeedClear = false;
     }
     for (PxU32 i = 0; i < nbPairs; i++) {
       const PxContactPair &cp = pairs[i];
 
-      if (cp.flags & (PxContactPairFlag::eREMOVED_SHAPE_0 |
-                      PxContactPairFlag::eREMOVED_SHAPE_1))
+      if (cp.flags & (PxContactPairFlag::eREMOVED_SHAPE_0 | PxContactPairFlag::eREMOVED_SHAPE_1)) {
         continue;
+      }
 
-      std::vector<PxContactPairPoint> contactVec;
+      
       const PxU8 &contactCount = cp.contactCount;
       const PxU32 offset = gContactPoints.size();
       if (contactCount) {
-        contactVec.resize(contactCount);
-        pairs[i].extractContacts(&contactVec[0], contactCount);
-        gContactPoints.insert(gContactPoints.cend(), contactVec.cbegin(),
-                              contactVec.cend());
+        gContactPoints.resize(offset + contactCount);
+        for (PxU32 j = 0; j < contactCount; j++) {
+          if (gContactPoints[offset + j] == nullptr) {
+            gContactPoints[offset + j] = gContactPairPointPool.get();
+          }
+        }
+
+        gContactTemp.resize(contactCount);
+        pairs[i].extractContacts(gContactTemp.data(), contactCount);
+
+        // Copy the extracted contacts to the global contact points
+        for (PxU32 j = 0; j < contactCount; j++) {
+          *(gContactPoints[offset + j]) = gContactTemp[j];
+        }
       }
 
       if (cp.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS) {
-        call<void>("onContactPersist", cp.shapes[0], cp.shapes[1], contactCount,
-                   &gContactPoints, offset);
+        // Raw pointer types passed to Javascript would be deleted after the call
+        // To avoid this, we need to override the 'raw_destructor' function.
+        // See the end of this file: 
+        //    template <> void raw_destructor<PxShape>(PxShape *) { /* do nothing */ }
+        //    template <> void raw_destructor<std::vector<PxContactPairPoint*>>(std::vector<PxContactPairPoint*>*) { }
+        //
+        call<void>("onContactPersist", cp.shapes[0], cp.shapes[1], contactCount, &gContactPoints, offset);
+        
       } else if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND) {
-        call<void>("onContactBegin", cp.shapes[0], cp.shapes[1], contactCount,
-                   &gContactPoints, offset);
+        call<void>("onContactBegin", cp.shapes[0], cp.shapes[1], contactCount, &gContactPoints, offset);
       } else if (cp.events & PxPairFlag::eNOTIFY_TOUCH_LOST) {
-        call<void>("onContactEnd", cp.shapes[0], cp.shapes[1], contactCount,
-                   &gContactPoints, offset);
+        call<void>("onContactEnd", cp.shapes[0], cp.shapes[1], contactCount, &gContactPoints, offset);
       }
     }
   }
@@ -186,11 +253,9 @@ struct PxSimulationEventCallbackWrapper
         continue;
 
       if (tp.status & PxPairFlag::eNOTIFY_TOUCH_FOUND) {
-        call<void>("onTriggerBegin", tp.triggerShape, tp.otherShape,
-                   tp.triggerActor, tp.otherActor);
+        call<void>("onTriggerBegin", tp.triggerShape, tp.otherShape, tp.triggerActor, tp.otherActor);
       } else if (tp.status & PxPairFlag::eNOTIFY_TOUCH_LOST) {
-        call<void>("onTriggerEnd", tp.triggerShape, tp.otherShape,
-                   tp.triggerActor, tp.otherActor);
+        call<void>("onTriggerEnd", tp.triggerShape, tp.otherShape, tp.triggerActor, tp.otherActor);
       }
       // Trigger do not support touch persists
       // else if (tp.status & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
@@ -669,7 +734,7 @@ EMSCRIPTEN_BINDINGS(physx) {
       .property("impulse", &PxContactPairPoint::impulse)
       .property("position", &PxContactPairPoint::position)
       .property("separation", &PxContactPairPoint::separation);
-  register_vector<PxContactPairPoint>("PxContactPairPointVector");
+  register_vector<PxContactPairPoint*>("PxContactPairPointPtrVector");
 
   enum_<PxIDENTITY>("PxIDENTITY").value("PxIdentity", PxIDENTITY::PxIdentity);
 
@@ -831,7 +896,6 @@ EMSCRIPTEN_BINDINGS(physx) {
                                      bool controlSimulation) {
                   gContactPointsNeedClear = true;
                   scene.simulate(elapsedTime, NULL, 0, 0, controlSimulation);
-                  return;
                 }))
       .function("fetchResults",
                 optional_override([](PxScene &scene, bool block) {
@@ -1718,6 +1782,17 @@ template <>
 void raw_destructor<PxUserControllerHitReport>(
     PxUserControllerHitReport *) { /* do nothing */
 }
+
+template <>
+void raw_destructor<std::vector<PxContactPairPoint*>>(std::vector<PxContactPairPoint*>*v) { 
+  /* do nothing */
+}
+
+template <>
+void raw_destructor<PxControllerHit>(PxControllerHit *) { /* do nothing */ }
+
+template <>
+void raw_destructor<PxControllerShapeHit>(PxControllerShapeHit *) { /* do nothing */ }
 
 } // namespace internal
 } // namespace emscripten
