@@ -39,7 +39,7 @@ using namespace physx;
 namespace
 {
 
-#define SN_NUM_BINARY_PLATFORMS 16
+#define SN_NUM_BINARY_PLATFORMS 19
 const PxU32 sBinaryPlatformTags[SN_NUM_BINARY_PLATFORMS] =
 {
 	PX_MAKE_FOURCC('W','_','3','2'),
@@ -58,6 +58,9 @@ const PxU32 sBinaryPlatformTags[SN_NUM_BINARY_PLATFORMS] =
 	PX_MAKE_FOURCC('L','A','6','4'),
 	PX_MAKE_FOURCC('W','A','3','2'),
 	PX_MAKE_FOURCC('W','A','6','4'),
+	PX_MAKE_FOURCC('M','A','6','4'),
+	PX_MAKE_FOURCC('A','I','S','X'),
+	PX_MAKE_FOURCC('A','I','S','A'),
 };
 
 const char* sBinaryPlatformNames[SN_NUM_BINARY_PLATFORMS] =
@@ -78,6 +81,9 @@ const char* sBinaryPlatformNames[SN_NUM_BINARY_PLATFORMS] =
 	"linuxaarch64",
 	"uwparm",
 	"uwparm64",
+	"macaarch64",
+	"ios-sim-x64",
+	"ios-sim-arm64",
 };
 
 }
@@ -102,9 +108,9 @@ PxU32 getBinaryPlatformTag()
 	return sBinaryPlatformTags[6];
 #elif PX_ANDROID
 	return sBinaryPlatformTags[7];
-#elif PX_IOS && PX_ARM
+#elif PX_IOS && PX_ARM && !PX_IOS_SIMULATOR
 	return sBinaryPlatformTags[8];
-#elif PX_IOS && PX_A64
+#elif PX_IOS && PX_A64 && !PX_IOS_SIMULATOR
 	return sBinaryPlatformTags[9];
 #elif PX_XBOXONE || PX_XBOX_SERIES_X
 	return sBinaryPlatformTags[10];
@@ -118,6 +124,12 @@ PxU32 getBinaryPlatformTag()
 	return sBinaryPlatformTags[14];
 #elif PX_UWP && PX_A64
 	return sBinaryPlatformTags[15];
+#elif PX_OSX && PX_A64
+	return sBinaryPlatformTags[16];
+#elif PX_IOS_SIMULATOR && PX_X64
+	return sBinaryPlatformTags[17];
+#elif PX_IOS_SIMULATOR && PX_A64
+	return sBinaryPlatformTags[18];
 #else
 	#error Unknown binary platform
 #endif

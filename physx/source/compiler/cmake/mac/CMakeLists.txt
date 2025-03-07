@@ -25,10 +25,18 @@
 ##
 ## Copyright (c) 2008-2021 NVIDIA Corporation. All rights reserved.
 
-SET(OSX_BITNESS "-arch x86_64")
-SET(CMAKE_OSX_ARCHITECTURES "x86_64")
+IF(PX_OUTPUT_ARCH STREQUAL "x86")
+	SET(OSX_BITNESS "-arch x86_64 -msse2")
+	SET(CMAKE_OSX_ARCHITECTURES "x86_64")
+ELSEIF(PX_OUTPUT_ARCH STREQUAL "arm")
+	SET(OSX_BITNESS "-arch arm64")
+	SET(CMAKE_OSX_ARCHITECTURES "arm64")
+ELSE()
+	SET(OSX_BITNESS "-arch x86_64 -arch arm64 -msse2")
+	SET(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+ENDIF()
 
-SET(PHYSX_CXX_FLAGS "${OSX_BITNESS} -msse2 -std=c++11 -fno-rtti -fno-exceptions -ffunction-sections -fdata-sections -Werror -ferror-limit=0 -Wall -Wextra -fstrict-aliasing -Wstrict-aliasing=2 -Weverything -Wno-unknown-warning-option -Wno-documentation-deprecated-sync -Wno-documentation-unknown-command -Wno-float-equal -Wno-padded -Wno-weak-vtables -Wno-cast-align -Wno-conversion -Wno-missing-noreturn -Wno-missing-variable-declarations -Wno-shift-sign-overflow -Wno-covered-switch-default -Wno-exit-time-destructors -Wno-global-constructors -Wno-missing-prototypes -Wno-unreachable-code -Wno-unused-macros -Wno-unused-member-function -Wno-used-but-marked-unused -Wno-weak-template-vtables -Wno-deprecated -Wno-non-virtual-dtor -Wno-invalid-noreturn -Wno-return-type-c-linkage -Wno-reserved-id-macro -Wno-c++98-compat-pedantic -Wno-unused-local-typedef -Wno-old-style-cast -Wno-newline-eof -Wno-unused-private-field -Wno-undefined-reinterpret-cast -Wno-invalid-offsetof -Wno-zero-as-null-pointer-constant -Wno-atomic-implicit-seq-cst -gdwarf-2" CACHE INTERNAL "PhysX CXX")
+SET(PHYSX_CXX_FLAGS "${OSX_BITNESS} -std=c++11 -fno-rtti -fno-exceptions -ffunction-sections -fdata-sections -ferror-limit=0 -fstrict-aliasing -Wstrict-aliasing=2 -Weverything -Wno-unknown-warning-option -Wno-documentation-deprecated-sync -Wno-documentation-unknown-command -Wno-float-equal -Wno-padded -Wno-weak-vtables -Wno-cast-align -Wno-conversion -Wno-missing-noreturn -Wno-missing-variable-declarations -Wno-shift-sign-overflow -Wno-covered-switch-default -Wno-exit-time-destructors -Wno-global-constructors -Wno-missing-prototypes -Wno-unreachable-code -Wno-unused-macros -Wno-unused-member-function -Wno-used-but-marked-unused -Wno-weak-template-vtables -Wno-deprecated -Wno-non-virtual-dtor -Wno-invalid-noreturn -Wno-return-type-c-linkage -Wno-reserved-id-macro -Wno-c++98-compat-pedantic -Wno-unused-local-typedef -Wno-old-style-cast -Wno-newline-eof -Wno-unused-private-field -Wno-undefined-reinterpret-cast -Wno-invalid-offsetof -Wno-zero-as-null-pointer-constant -Wno-suggest-override -Wno-suggest-destructor-override -Wno-bitwise-instead-of-logical -Wno-alloca -Wno-atomic-implicit-seq-cst -Wno-anon-enum-enum-conversion -Wno-double-promotion -Wno-unused-but-set-variable -gdwarf-2" CACHE INTERNAL "PhysX CXX")
 
 SET(CMAKE_SHARED_LINKER_FLAGS_CHECKED "")
 SET(CMAKE_SHARED_LINKER_FLAGS_PROFILE "")
@@ -38,7 +46,7 @@ SET(CMAKE_SHARED_LINKER_FLAGS "")
 SET(PHYSX_CXX_FLAGS_DEBUG "-O0 -g" CACHE INTERNAL "PhysX Debug CXX Flags")
 SET(PHYSX_CXX_FLAGS_CHECKED "-O3 -g" CACHE INTERNAL "PhysX Checked CXX Flags")
 SET(PHYSX_CXX_FLAGS_PROFILE "-O3 -g" CACHE INTERNAL "PhysX Profile CXX Flags")
-SET(PHYSX_CXX_FLAGS_RELEASE "-O3 -g" CACHE INTERNAL "PhysX Release CXX Flags")
+SET(PHYSX_CXX_FLAGS_RELEASE "-O3 -g0" CACHE INTERNAL "PhysX Release CXX Flags")
 
 # These flags are local to the directory the CMakeLists.txt is in
 SET(CMAKE_CXX_FLAGS ${PHYSX_CXX_FLAGS})

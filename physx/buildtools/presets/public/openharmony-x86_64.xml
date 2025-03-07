@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<preset name="openharmony-x86_64" comment="openharmony-9, x86_64 PhysX SDK ">
+  <platform targetPlatform="openharmony" compiler="clang" />
+  <CMakeSwitches>
+    <cmakeSwitch name="PX_BUILDSNIPPETS" value="False" comment="Generate the snippets" />
+    <cmakeSwitch name="PX_GENERATE_STATIC_LIBRARIES" value="True" comment="Generate static libs" />
+  </CMakeSwitches>
+  <CMakeParams>
+    <cmakeParam name="CMAKE_INSTALL_PREFIX" value="install/openharmony-x86_64/PhysX" comment="Install path relative to PhysX SDK root" />
+    <cmakeParam name="openharmony_NATIVE_API_LEVEL" value="9" comment="openharmony platform API level" />
+    <cmakeParam name="OHOS_ARCH" value="x86_64" comment="openharmony x86_64 ABI" />
+    <cmakeParam name="ANDROID_ABI" value="x86_64" comment="openharmony x86_64 ABI" />
+    <cmakeParam name="OPENHARMONY" value="1" comment="openharmony" />
+  </CMakeParams>
+</preset>
