@@ -505,13 +505,12 @@ jobs:
     - name: Show Result
       shell: bash
       run: |
-        cd physx
         echo "Files in bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}: "
         ls -l physx/install/${{ matrix.config.preset }}/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}
         rm -f physx/install/${{ matrix.config.preset }}/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}/*.pdb
-        cp physx/install/${{ matrix.config.preset }}/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}/* ../dist-windows/
+        cp physx/install/${{ matrix.config.preset }}/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}/* dist-windows/
         echo "Show files in dist-windows:"
-        ls -l ../dist-windows/
+        ls -l dist-windows/
 
     - name: Upload Artifact (.lib)
       uses: actions/upload-artifact@v4
