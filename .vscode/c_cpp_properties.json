@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "emscripten",
+            "includePath": [
+                "${workspaceFolder}/physx/include"
+            ],
+            "compileCommands": "${workspaceFolder}/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

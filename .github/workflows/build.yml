@@ -451,6 +451,13 @@ jobs:
   build-windows:
     name: "windows"
     runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { preset: vc16win64-debug, buildtype: debug, runtime: md }
+          - { preset: vc16win64, buildtype: release, runtime: md }
+
     permissions:
       contents: write
     steps:
@@ -476,62 +483,83 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Create Windows dist directory
+      shell: bash
+      run: |
+        mkdir dist-windows
+        rm -rf physx/bin
+
     - name: Create Project
       shell: cmd
       run: |
         cd physx
-        generate_projects.bat vc16win64
+        generate_projects.bat ${{ matrix.config.preset }}
 
     - name: Build
       shell: bash
       run: |
         cd physx
-        rm -rf bin
-        cd compiler/vc16win64
-        cmake --build . --target install --config release
+        cd compiler/${{ matrix.config.preset }}
+        cmake --build . --target install --config ${{ matrix.config.buildtype }}
 
     - name: Show Result
       shell: bash
       run: |
-        cd physx
-        ls -l bin/
-        echo "Files in bin/win.x86_64.vc142.mt/release: "
-        ls -l bin/win.x86_64.vc142.mt/release
-        rm -f bin/win.x86_64.vc142.mt/release/*.pdb
+        echo "Files in bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}: "
+        ls -l physx/install/${{ matrix.config.preset }}/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}
+        rm -f physx/install/${{ matrix.config.preset }}/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}/*.pdb
+        cp physx/install/${{ matrix.config.preset }}/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}/* dist-windows/
+        echo "Show files in dist-windows:"
+        ls -l dist-windows/
 
     - name: Upload Artifact (.lib)
       uses: actions/upload-artifact@v4
       with:
-        name: win64
-        path: physx/bin/win.x86_64.vc142.mt/release/*
-
-    - name: Remove physx/install/vc16win64/PhysX/bin
-      shell: bash
-      run: |
-        rm -rf physx/install/vc16win64/PhysX/bin
+        name: win64-${{ matrix.config.buildtype }}
+        path: dist-windows/*
 
     - name: Upload Artifact (.h)
       uses: actions/upload-artifact@v4
+      if: ${{ matrix.config.buildtype == 'release' }}
       with:
         name: cpp-header-windows
         path: physx/install/vc16win64/*
+
+  create-windows-package:
+    if: github.event_name == 'release'
+    name: "create-windows-package"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: build-windows
+    steps:
+    - name: Download windows Artifacts (debug)
+      uses: actions/download-artifact@v4
+      with:
+        name: win64-debug
+        path: artifacts/win64-debug
+
+    - name: Download windows Artifacts (release)
+      uses: actions/download-artifact@v4
+      with:
+        name: win64-release
+        path: artifacts/win64-release
 
     - name: Pack dist files
       if: github.event_name == 'release'
       uses: thedoctor0/zip-release@main
       with:
         type: 'zip'
-        directory: 'physx/bin/win.x86_64.vc142.mt/release'
+        directory: 'artifacts'
         path: '.'
         filename: 'physx-${{ github.event.release.tag_name }}-win64.zip'
-        exclusions: '*.pdb'
 
     - name: Upload to Release
       if: github.event_name == 'release'
       uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: physx/bin/win.x86_64.vc142.mt/release/physx-${{ github.event.release.tag_name }}-win64.zip
+        file: artifacts/physx-${{ github.event.release.tag_name }}-win64.zip
         asset_name: physx-${{ github.event.release.tag_name }}-win64.zip
         tag: ${{ github.ref }}
 
