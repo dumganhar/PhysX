@@ -95,6 +95,9 @@ struct PxQueryFilterCallbackWrapper : public wrapper<PxQueryFilterCallback> {
     // {
     //   return PxQueryHitType::eNONE;
     // }
+
+    // NOTE: out parameter is not supported and it's not used in cocos.
+    // And to avoid memory leak of `PxHitFlags` object, just don't pass the parameter to JS.
     PxQueryHitType::Enum hitType = call<PxQueryHitType::Enum>("preFilter", filterData, shape, actor/*, &out */);
     return hitType;
   }
