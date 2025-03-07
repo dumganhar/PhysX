@@ -29,11 +29,7 @@ OPTION(PX_COPY_EXTERNAL_DLL "Copy external dlls into SDK bin directory" OFF)
 OPTION(PX_FLOAT_POINT_PRECISE_MATH "Float point precise math" OFF)
 OPTION(PX_USE_NVTX "Enabled NVTX profiling" OFF)
 
-IF(CMAKE_BUILD_TYPE STREQUAL "release")
-	SET(NV_USE_DEBUG_WINCRT OFF)
-ELSE()
-	SET(NV_USE_DEBUG_WINCRT ON)
-ENDIF()
+SET(GPU_DLL_COPIED 1)
 
 # We define the CXX flags for this CMakeLists and all others that are included afterwards. This is a GLOBAL setting. 
 # If/when the solutions go standalone (say, samples and visual tests) - those CMakeLists will need to be fixed.
