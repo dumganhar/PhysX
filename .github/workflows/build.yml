@@ -487,6 +487,7 @@ jobs:
       run: |
         cd physx
         rm -rf bin
+        mkdir -p bin/windows
         cd compiler/vc16win64
         cmake --build . --target install --config debug
 
@@ -495,9 +496,11 @@ jobs:
       run: |
         cd physx
         ls -l bin/
-        echo "Files in bin/win.x86_64.vc142.mt/debug: "
-        ls -l bin/win.x86_64.vc142.mt/debug
-        rm -f bin/win.x86_64.vc142.mt/debug/*.pdb
+        mkdir bin/windows/debug
+        echo "Files in bin/win.x86_64.vc142.md/debug: "
+        ls -l bin/win.x86_64.vc142.md/debug
+        rm -f bin/win.x86_64.vc142.md/debug/*.pdb
+        cp bin/win.x86_64.vc142.md/debug/* bin/windows/debug/
 
     - name: Build (release)
       shell: bash
@@ -512,15 +515,17 @@ jobs:
       run: |
         cd physx
         ls -l bin/
+        mkdir bin/windows/release
         echo "Files in bin/win.x86_64.vc142.mt/release: "
         ls -l bin/win.x86_64.vc142.mt/release
         rm -f bin/win.x86_64.vc142.mt/release/*.pdb
+        cp bin/win.x86_64.vc142.mt/release/* bin/windows/release/
 
     - name: Upload Artifact (.lib)
       uses: actions/upload-artifact@v4
       with:
         name: win64
-        path: physx/bin/win.x86_64.vc142.mt/*
+        path: physx/bin/windows/*
 
     - name: Remove physx/install/vc16win64/PhysX/bin
       shell: bash
@@ -538,7 +543,7 @@ jobs:
       uses: thedoctor0/zip-release@main
       with:
         type: 'zip'
-        directory: 'physx/bin/win.x86_64.vc142.mt'
+        directory: 'physx/bin/windows'
         path: '.'
         filename: 'physx-${{ github.event.release.tag_name }}-win64.zip'
         exclusions: '*.pdb'
@@ -548,7 +553,7 @@ jobs:
       uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: physx/bin/win.x86_64.vc142.mt/release/physx-${{ github.event.release.tag_name }}-win64.zip
+        file: physx/bin/windows/physx-${{ github.event.release.tag_name }}-win64.zip
         asset_name: physx-${{ github.event.release.tag_name }}-win64.zip
         tag: ${{ github.ref }}
 
