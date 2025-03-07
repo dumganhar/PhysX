@@ -476,19 +476,22 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Create Project
+    - name: Create Windows dist directory
+      shell: bash
+      run: |
+        mkdir dist-windows
+
+    - name: Create Project (debug)
       shell: cmd
       run: |
         cd physx
-        generate_projects.bat vc16win64
+        generate_projects.bat vc16win64-debug
 
     - name: Build (debug)
       shell: bash
       run: |
         cd physx
-        rm -rf bin
-        mkdir -p bin/windows
-        cd compiler/vc16win64
+        cd compiler/vc16win64-debug
         cmake --build . --target install --config debug
 
     - name: Show Result (debug)
@@ -496,17 +499,22 @@ jobs:
       run: |
         cd physx
         ls -l bin/
-        mkdir bin/windows/debug
         echo "Files in bin/win.x86_64.vc142.md/debug: "
         ls -l bin/win.x86_64.vc142.md/debug
         rm -f bin/win.x86_64.vc142.md/debug/*.pdb
-        cp bin/win.x86_64.vc142.md/debug/* bin/windows/debug/
+        cp bin/win.x86_64.vc142.md/debug/* ../dist-windows/
+        rm -rf bin
+
+    - name: Create Project (release)
+      shell: cmd
+      run: |
+        cd physx
+        generate_projects.bat vc16win64
 
     - name: Build (release)
       shell: bash
       run: |
         cd physx
-        rm -rf bin
         cd compiler/vc16win64
         cmake --build . --target install --config release
 
@@ -515,17 +523,17 @@ jobs:
       run: |
         cd physx
         ls -l bin/
-        mkdir bin/windows/release
         echo "Files in bin/win.x86_64.vc142.mt/release: "
         ls -l bin/win.x86_64.vc142.mt/release
         rm -f bin/win.x86_64.vc142.mt/release/*.pdb
-        cp bin/win.x86_64.vc142.mt/release/* bin/windows/release/
+        cp bin/win.x86_64.vc142.mt/release/* ../dist-windows/
+        rm -rf bin
 
     - name: Upload Artifact (.lib)
       uses: actions/upload-artifact@v4
       with:
         name: win64
-        path: physx/bin/windows/*
+        path: dist-windows/*
 
     - name: Remove physx/install/vc16win64/PhysX/bin
       shell: bash
@@ -543,7 +551,7 @@ jobs:
       uses: thedoctor0/zip-release@main
       with:
         type: 'zip'
-        directory: 'physx/bin/windows'
+        directory: 'dist-windows'
         path: '.'
         filename: 'physx-${{ github.event.release.tag_name }}-win64.zip'
         exclusions: '*.pdb'
@@ -553,7 +561,7 @@ jobs:
       uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: physx/bin/windows/physx-${{ github.event.release.tag_name }}-win64.zip
+        file: dist-windows/physx-${{ github.event.release.tag_name }}-win64.zip
         asset_name: physx-${{ github.event.release.tag_name }}-win64.zip
         tag: ${{ github.ref }}
 
