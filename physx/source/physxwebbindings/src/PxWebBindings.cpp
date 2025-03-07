@@ -1768,5 +1768,20 @@ void raw_destructor<PxControllerShapeHit>(PxControllerShapeHit *) { /* do nothin
 template <>
 void raw_destructor<PxControllerObstacleHit>(PxControllerObstacleHit *) { /* do nothing */ }
 
+template <>
+void raw_destructor<PxQueryHit>(PxQueryHit *) { /* do nothing */ }
+
+template <>
+void raw_destructor<PxLocationHit>(PxLocationHit *) { /* do nothing */ }
+
+template <>
+void raw_destructor<PxOverlapHit>(PxOverlapHit *) { /* do nothing */ }
+
+template <>
+void raw_destructor<PxSweepHit>(PxSweepHit *) { /* do nothing */ }
+
+template <>
+void raw_destructor<PxRaycastHit>(PxRaycastHit *) { /* do nothing */ }
+
 } // namespace internal
 } // namespace emscripten
