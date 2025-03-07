@@ -456,7 +456,7 @@ jobs:
       matrix:
         config:
           - { preset: vc16win64-debug, buildtype: debug, runtime: md }
-          - { preset: vc16win64, buildtype: release, runtime: mt }
+          - { preset: vc16win64, buildtype: release, runtime: md }
 
     permissions:
       contents: write
