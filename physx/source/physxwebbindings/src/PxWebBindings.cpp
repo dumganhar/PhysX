@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #include "PxWebBindings.h"
 
-#define __LIB_VERSION__ 100
+#define __LIB_VERSION__ 101
 
 using namespace physx;
 using namespace emscripten;
@@ -43,41 +43,6 @@ DEFINE_ALLOW_RAW_POINTER(PxControllersHit)
 DEFINE_ALLOW_RAW_POINTER(PxControllerObstacleHit)
 DEFINE_ALLOW_RAW_POINTER(PxContactPairPoint)
 DEFINE_ALLOW_RAW_POINTER(std::vector<PxContactPairPoint*>)
-
-template <typename T>
-void registerPhysxInteger(const char* name) {
-    using namespace emscripten::internal;
-    using UnderlyingType = typename T::InternalType;
-    _embind_register_integer(TypeID<T>::get(), name, sizeof(T), std::numeric_limits<UnderlyingType>::min(),
-    std::numeric_limits<UnderlyingType>::max());
-}
-
-#define MARK_PHYSX_ENUM(name) \
-namespace std { \
-template <> \
-struct is_enum<physx::name> { \
-  static constexpr bool value = true; \
-}; \
-} \
-namespace emscripten { namespace internal { \
-  template <> \
-  struct EnumBindingType<name> { \
-      using WireType = physx::name::InternalType; \
-      static WireType toWireType(physx::name v) { \
-          return uint32_t(v); \
-      } \
-      static physx::name fromWireType(WireType v) { \
-          return physx::name(v); \
-      } \
-  }; \
-}}
-
-// MARK_PHYSX_ENUM(PxQueryFlags)
-// MARK_PHYSX_ENUM(PxHitFlags)
-// MARK_PHYSX_ENUM(PxShapeFlags)
-
-#define REGISTER_PHYSX_ENUM(name) \
-    registerPhysxInteger<physx::name>("physx::" #name)
 
 struct PxRaycastCallbackWrapper : public wrapper<PxRaycastCallback> {
   EMSCRIPTEN_WRAPPER(PxRaycastCallbackWrapper)
@@ -1792,7 +1757,13 @@ template <>
 void raw_destructor<PxControllerHit>(PxControllerHit *) { /* do nothing */ }
 
 template <>
+void raw_destructor<PxControllersHit>(PxControllersHit *) { /* do nothing */ }
+
+template <>
 void raw_destructor<PxControllerShapeHit>(PxControllerShapeHit *) { /* do nothing */ }
+
+template <>
+void raw_destructor<PxControllerObstacleHit>(PxControllerObstacleHit *) { /* do nothing */ }
 
 } // namespace internal
 } // namespace emscripten
