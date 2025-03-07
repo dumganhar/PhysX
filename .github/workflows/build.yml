@@ -482,7 +482,24 @@ jobs:
         cd physx
         generate_projects.bat vc16win64
 
-    - name: Build
+    - name: Build (debug)
+      shell: bash
+      run: |
+        cd physx
+        rm -rf bin
+        cd compiler/vc16win64
+        cmake --build . --target install --config debug
+
+    - name: Show Result (debug)
+      shell: bash
+      run: |
+        cd physx
+        ls -l bin/
+        echo "Files in bin/win.x86_64.vc142.mt/debug: "
+        ls -l bin/win.x86_64.vc142.mt/debug
+        rm -f bin/win.x86_64.vc142.mt/debug/*.pdb
+
+    - name: Build (release)
       shell: bash
       run: |
         cd physx
@@ -490,7 +507,7 @@ jobs:
         cd compiler/vc16win64
         cmake --build . --target install --config release
 
-    - name: Show Result
+    - name: Show Result (release)
       shell: bash
       run: |
         cd physx
@@ -503,7 +520,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: win64
-        path: physx/bin/win.x86_64.vc142.mt/release/*
+        path: physx/bin/win.x86_64.vc142.mt/*
 
     - name: Remove physx/install/vc16win64/PhysX/bin
       shell: bash
@@ -521,7 +538,7 @@ jobs:
       uses: thedoctor0/zip-release@main
       with:
         type: 'zip'
-        directory: 'physx/bin/win.x86_64.vc142.mt/release'
+        directory: 'physx/bin/win.x86_64.vc142.mt'
         path: '.'
         filename: 'physx-${{ github.event.release.tag_name }}-win64.zip'
         exclusions: '*.pdb'
