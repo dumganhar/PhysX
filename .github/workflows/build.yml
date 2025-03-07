@@ -507,9 +507,9 @@ jobs:
       run: |
         cd physx
         echo "Files in bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}: "
-        ls -l physx/install/vc16win64/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}
-        rm -f physx/install/vc16win64/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}/*.pdb
-        cp physx/install/vc16win64/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}/* ../dist-windows/
+        ls -l physx/install/${{ matrix.config.preset }}/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}
+        rm -f physx/install/${{ matrix.config.preset }}/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}/*.pdb
+        cp physx/install/${{ matrix.config.preset }}/PhysX/bin/win.x86_64.vc142.${{ matrix.config.runtime }}/${{ matrix.config.buildtype }}/* ../dist-windows/
         echo "Show files in dist-windows:"
         ls -l ../dist-windows/
 
@@ -518,11 +518,6 @@ jobs:
       with:
         name: win64-${{ matrix.config.buildtype }}
         path: dist-windows/*
-
-    - name: Remove physx/install/vc16win64/PhysX/bin
-      shell: bash
-      run: |
-        rm -rf physx/install/vc16win64/PhysX/bin
 
     - name: Upload Artifact (.h)
       uses: actions/upload-artifact@v4
